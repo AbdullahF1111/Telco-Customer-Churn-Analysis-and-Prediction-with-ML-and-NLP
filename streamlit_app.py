@@ -422,4 +422,4 @@ st.markdown(
 1. Train and export your sklearn-like model to `artifacts/model.pkl`. Use `joblib.dump(model, 'artifacts/model.pkl')`.
 2. Save a fitted `StandardScaler` to `artifacts/scaler.pkl` if you scaled numerics during training.
 3. Save a JSON list of feature column names your model expects (ordered) to `artifacts/feature_columns.json`.
-   Example:
+   Example:)
