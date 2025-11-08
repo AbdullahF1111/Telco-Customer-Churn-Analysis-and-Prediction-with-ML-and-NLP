@@ -1,16 +1,8 @@
-# Core Data & ML Libraries
+streamlit==1.51.0
 pandas==2.3.3
 numpy==2.3.4
+matplotlib==3.9.2
+seaborn==0.13.2
 scikit-learn==1.5.2
 xgboost==2.1.2
 joblib==1.4.2
-
-# Visualization
-matplotlib==3.9.2
-seaborn==0.13.2
-
-# Streamlit App
-streamlit==1.51.0
-
-# Misc Utilities
-typing_extensions==4.12.2
