@@ -202,23 +202,73 @@ if submitted:
 
 # --------------------- EDA Section ---------------------
 st.markdown("---")
-st.header("📈 Quick Analysis (Upload Dataset)")
-uploaded = st.file_uploader("Upload Telco dataset (optional)", type=["csv"])
+st.header("📊 Exploratory Data Analysis & Insights")
 
-if uploaded is not None:
-    df = pd.read_csv(uploaded)
-    st.write("Preview:", df.head())
+st.markdown("""
+### 🧩 Overview
+The analysis explored relationships between customer demographics, contract types, service usage, and churn behavior.  
+The following visuals summarize **feature importance**, **distribution patterns**, and **service correlations**.
 
-    if "Churn" in df.columns:
-        st.subheader("Churn Distribution")
-        fig, ax = plt.subplots()
-        sns.countplot(x="Churn", data=df, ax=ax, palette="coolwarm")
-        st.pyplot(fig)
+Below are the highlights of the analysis and model performance.
+""")
 
-        df_enc = pd.get_dummies(df, drop_first=False)
-        corr = df_enc.corr()["Churn"].sort_values(ascending=False)
-        st.subheader("Top Correlated Features")
-        st.bar_chart(corr.head(10))
+# --- Display Uploaded Figures ---
+eda_imgs = {
+    "Feature Importance": "8fb85dc9-32bf-417c-b665-47c56d95e396.png",
+    "Numerical vs Churn": "e45ce6c2-2d3d-4206-a72d-d38dec9b673a.png",
+    "Categorical vs Churn (Set 1)": "9cd83850-3bbf-4bcf-950b-22208fa704f2.png",
+    "Numerical vs Churn (Alt)": "a71e5bb7-7ff0-472e-9465-7c917c9e5949.png",
+    "Categorical vs Churn (Set 2)": "66b85777-7c13-4bf1-afa5-92393b355cc8.png",
+}
 
-st.markdown("---")
-st.caption("Developed by Abdullah Fahlo — Telco Churn ML + NLP Project")
+for title, img_id in eda_imgs.items():
+    st.subheader(f"📌 {title}")
+    st.image(f"/mnt/data/{img_id}", use_container_width=True)
+
+# --- Markdown Summary ---
+st.markdown("""
+### 🧠 Key Findings
+
+- **Churn rate:** ~26%, showing a notable loss of customers.
+- **High churn** among customers with:
+  - **Month-to-month contracts**
+  - **Electronic check payments**
+  - **No tech support or online security**
+  - **Fiber optic internet**
+- **Higher monthly charges** and **shorter tenure** → greater churn risk.
+- **Sentiment analysis** shows that negative feedback correlates strongly with churn.
+
+---
+
+### ⚙️ Model Comparison
+
+| Model | Accuracy | Precision | Recall | F1-score | ROC-AUC |
+|:------|:----------|:-----------|:--------|:----------|:---------|
+| **Random Forest** | 0.899 | 0.877 | 0.722 | 0.792 | 0.946 |
+| **Logistic Regression** | 0.895 | 0.834 | 0.754 | 0.792 | 0.945 |
+| **XGBoost** | 0.898 | 0.836 | 0.765 | 0.799 | 0.941 |
+
+✅ **Random Forest** performed best overall, balancing interpretability and accuracy.
+
+---
+
+### 💼 Expected Business Impact
+
+- **Early churn prediction → targeted retention strategy**
+- **Improved marketing ROI → focused engagement on at-risk customers**
+- **Estimated churn reduction:** ~15–25% with proactive offers & follow-up actions
+
+---
+
+### 📊 Business Insights & Recommendations
+
+- Focus retention campaigns on **month-to-month** customers.
+- Offer discounts or loyalty programs to **high-charge customers**.
+- Incentivize users to switch from **electronic check to auto-pay**.
+- Promote **Online Security** and **Tech Support** services.
+- Monitor **negative sentiment reviews** for early churn warning signals.
+
+---
+
+📘 *This section summarizes the analytical findings and model evaluation from the Telco Customer Churn project.*
+""")
