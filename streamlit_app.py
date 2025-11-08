@@ -83,7 +83,7 @@ def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
         df["HasInternet"] = df["InternetService"].apply(lambda v: 0 if str(v).lower() == "no" else 1)
 
     # yes/no -> 1/0
-    yesno_cols = ['Partner','Dependents','PhoneService','OnlineSecurity','OnlineBackup',
+    yesno_cols = ['Partner','Dependents','PhoneService','MultipleLines','OnlineSecurity','OnlineBackup',
                   'DeviceProtection','TechSupport','StreamingTV','StreamingMovies','PaperlessBilling']
     for col in yesno_cols:
         if col in df.columns:
@@ -138,10 +138,12 @@ with st.form("customer_input"):
     st.markdown("### Optional Features")
     c4, c5 = st.columns(2)
     with c4:
+        phone_service = st.selectbox("Phone Service", ["yes","no"], 0)
+        multiple_lines = st.selectbox("Multiple Lines", ["no","yes","no phone service"], 0)
         online_security = st.selectbox("Online Security", ["yes","no","no internet service"], 1)
         tech_support = st.selectbox("Tech Support", ["yes","no","no internet service"], 1)
-        device_protection = st.selectbox("Device Protection", ["yes","no","no internet service"], 1)
     with c5:
+        device_protection = st.selectbox("Device Protection", ["yes","no","no internet service"], 1)
         streaming_tv = st.selectbox("Streaming TV", ["yes","no","no internet service"], 1)
         streaming_movies = st.selectbox("Streaming Movies", ["yes","no","no internet service"], 1)
         payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
@@ -163,6 +165,8 @@ if submitted:
         "InternetService": internet,
         "Contract": contract,
         "PaperlessBilling": paperless,
+        "PhoneService": phone_service,
+        "MultipleLines": multiple_lines,
         "OnlineSecurity": online_security,
         "TechSupport": tech_support,
         "DeviceProtection": device_protection,
@@ -176,8 +180,6 @@ if submitted:
 
     df_input = pd.DataFrame([row])
     X_input = preprocess_input(df_input, feat_cols=model_feat_cols, scaler=scaler)
-
-    # ✅ Ensure numeric
     X_input = X_input.astype(float).fillna(0)
 
     try:
