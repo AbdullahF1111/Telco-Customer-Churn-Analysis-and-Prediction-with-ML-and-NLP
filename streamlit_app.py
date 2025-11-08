@@ -263,7 +263,7 @@ with st.form("input_form"):
         paperless = st.selectbox("PaperlessBilling", options=["yes", "no"], index=0)
 
     st.markdown("#### Optional extras (kept as defaults if not changed)")
-    col4, col5 = st.columns(2)
+    col4, col5, col6 = st.columns(3)
     with col4:
         online_security = st.selectbox("OnlineSecurity", options=["yes", "no", "no internet service"], index=1)
         tech_support = st.selectbox("TechSupport", options=["yes", "no", "no internet service"], index=1)
@@ -271,13 +271,19 @@ with st.form("input_form"):
     with col5:
         multiple_lines = st.selectbox("MultipleLines", options=["no", "yes", "no phone service"], index=0)
         streaming_tv = st.selectbox("StreamingTV", options=["no", "yes", "no internet service"], index=0)
-        payment_method = st.selectbox("PaymentMethod", options=["electronic check", "mailed check", "bank transfer (automatic)", "credit card (automatic)"], index=0)
+        streaming_movies = st.selectbox("StreamingMovies", options=["no", "yes", "no internet service"], index=0)
+    with col6:
+        device_protection = st.selectbox("DeviceProtection", options=["no", "yes", "no internet service"], index=0)
+        payment_method = st.selectbox("PaymentMethod", options=[
+            "electronic check", "mailed check", "bank transfer (automatic)", "credit card (automatic)"
+        ], index=0)
 
     # customer review -> sentiment
     st.markdown("#### Customer review (optional)")
-    review_text = st.text_area("Customer review (optional). We'll convert to a sentiment score automatically.", height=120)
-    # optional inputs for feedback_length if you want to override:
-    feedback_length_input = st.number_input("Feedback length (optional; auto-calculated if left 0)", min_value=0, value=0, step=1)
+    review_text = st.text_area(
+        "Customer review (optional). We'll convert it to a sentiment score automatically.",
+        height=120
+    )
 
     submitted = st.form_submit_button("🔮 Predict churn")
 
@@ -301,15 +307,17 @@ if submitted:
         "PhoneService": phone_service,
         "MultipleLines": multiple_lines,
         "StreamingTV": streaming_tv,
-        "StreamingMovies": "no",  # default
-        "DeviceProtection": "no",
-        "gender": "male",  # default but you could expose
+        "StreamingMovies": streaming_movies,
+        "DeviceProtection": device_protection,
+        "gender": "male",  # default but you could expose later
         "PaymentMethod": payment_method
     }
+
     # sentiment
     sentiment_score = simple_sentiment_score(review_text)
-    # Compute feedback_length
-    feedback_length = feedback_length_input if feedback_length_input > 0 else (len(review_text.split()) if review_text else 0)
+    # Automatically compute feedback length
+    feedback_length = len(review_text.split()) if review_text else 0
+
     row["feedback_length"] = feedback_length
     row["sentiment"] = sentiment_score
 
