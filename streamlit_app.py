@@ -1,9 +1,9 @@
 """
 Telco Customer Churn Prediction Streamlit App
-- Uses your trained Random Forest model and scaler from /artifacts
-- Allows customer info + optional review (converted to sentiment)
-- Automatically preprocesses input to match model features
-- Includes simple EDA dashboard if CSV is uploaded
+- Clean & Professional UI
+- Dynamic inputs (hide multiple lines when no phone service)
+- Optional "Additional Info" expander for extra fields
+- Uses trained Random Forest model and scaler from /artifacts
 """
 
 import os
@@ -21,8 +21,8 @@ st.set_page_config(page_title="Telco Churn Predictor", layout="wide", page_icon=
 st.title("📈 Telco Customer Churn Prediction App")
 st.markdown(
     """
-Enter customer details below — optional fields have defaults.  
-You can also add a short customer review to automatically compute a sentiment score.
+Enter key customer details below — optional fields can be expanded.  
+You can also add a customer review for automatic sentiment scoring.
 """
 )
 
@@ -65,11 +65,9 @@ model, scaler, model_feat_cols = load_artifacts()
 def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
     df = df_input.copy()
 
-    # clean string columns
     for c in df.select_dtypes(include="object").columns:
         df[c] = df[c].astype(str).str.strip()
 
-    # clean service fields
     internet_cols = ['OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies']
     for col in internet_cols:
         if col in df.columns:
@@ -78,27 +76,22 @@ def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
     if "MultipleLines" in df.columns:
         df["MultipleLines"] = df["MultipleLines"].replace({"no phone service": "no"})
 
-    # HasInternet
     if "InternetService" in df.columns:
         df["HasInternet"] = df["InternetService"].apply(lambda v: 0 if str(v).lower() == "no" else 1)
 
-    # yes/no -> 1/0
     yesno_cols = ['Partner','Dependents','PhoneService','MultipleLines','OnlineSecurity','OnlineBackup',
                   'DeviceProtection','TechSupport','StreamingTV','StreamingMovies','PaperlessBilling']
     for col in yesno_cols:
         if col in df.columns:
             df[col] = df[col].map({"yes": 1, "no": 0}).fillna(0).astype(int)
 
-    # numeric fields
     for c in ["tenure","MonthlyCharges","TotalCharges","feedback_length","sentiment"]:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
 
-    # One-hot encode
     multi_cols = [c for c in ["InternetService","Contract","PaymentMethod","gender"] if c in df.columns]
     df = pd.get_dummies(df, columns=multi_cols, drop_first=False)
 
-    # Align columns
     if feat_cols is not None:
         for c in feat_cols:
             if c not in df.columns:
@@ -107,7 +100,6 @@ def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
     else:
         df = df.select_dtypes(include=np.number)
 
-    # Scale numeric
     if scaler is not None:
         num_cols = [c for c in ["tenure","MonthlyCharges","TotalCharges","feedback_length","sentiment"] if c in df.columns]
         try:
@@ -118,7 +110,7 @@ def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
     return df
 
 # --------------------- Input Form ---------------------
-st.header("📋 Customer Input")
+st.header("🧾 Customer Input")
 
 with st.form("customer_input"):
     c1, c2, c3 = st.columns(3)
@@ -127,30 +119,34 @@ with st.form("customer_input"):
         monthly = st.number_input("Monthly Charges", 0.0, 1000.0, 75.0)
         total = st.number_input("Total Charges", 0.0, 10000.0, 1800.0)
     with c2:
-        senior = st.selectbox("Senior Citizen", [0, 1], 0)
-        partner = st.selectbox("Partner", ["yes", "no"], 1)
-        dependents = st.selectbox("Dependents", ["yes", "no"], 1)
-    with c3:
         internet = st.selectbox("Internet Service", ["fiber optic","dsl","no"], 1)
         contract = st.selectbox("Contract", ["month-to-month","one year","two year"], 0)
         paperless = st.selectbox("Paperless Billing", ["yes","no"], 0)
-
-    st.markdown("### Optional Features")
-    c4, c5 = st.columns(2)
-    with c4:
+    with c3:
+        payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
         phone_service = st.selectbox("Phone Service", ["yes","no"], 0)
-        multiple_lines = st.selectbox("Multiple Lines", ["no","yes","no phone service"], 0)
         online_security = st.selectbox("Online Security", ["yes","no","no internet service"], 1)
-        tech_support = st.selectbox("Tech Support", ["yes","no","no internet service"], 1)
-    with c5:
+
+    # --- Conditional: Hide MultipleLines if no phone service ---
+    if phone_service == "yes":
+        multiple_lines = st.selectbox("Multiple Lines", ["no","yes","no phone service"], 0)
+    else:
+        multiple_lines = "no phone service"
+
+    # --- Optional Fields in Expander ---
+    with st.expander("📂 Enter Additional Info (optional)"):
         device_protection = st.selectbox("Device Protection", ["yes","no","no internet service"], 1)
         streaming_tv = st.selectbox("Streaming TV", ["yes","no","no internet service"], 1)
         streaming_movies = st.selectbox("Streaming Movies", ["yes","no","no internet service"], 1)
-        payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
+        tech_support = st.selectbox("Tech Support", ["yes","no","no internet service"], 1)
+        partner = st.selectbox("Partner", ["yes","no"], 1)
+        dependents = st.selectbox("Dependents", ["yes","no"], 1)
+        senior = st.selectbox("Senior Citizen", [0, 1], 0)
 
     review_text = st.text_area("📝 Customer Review (optional)")
     submitted = st.form_submit_button("🔮 Predict Churn")
 
+# --------------------- Prediction ---------------------
 if submitted:
     sentiment = simple_sentiment_score(review_text)
     feedback_len = len(review_text.split()) if review_text else 0
@@ -175,7 +171,7 @@ if submitted:
         "PaymentMethod": payment,
         "feedback_length": feedback_len,
         "sentiment": sentiment,
-        "gender": "male"  # default
+        "gender": "male"
     }
 
     df_input = pd.DataFrame([row])
@@ -194,13 +190,13 @@ if submitted:
     st.progress(proba)
     st.write(f"**Churn Probability:** {proba:.2%}")
 
-    st.markdown("#### 📊 Recommendations")
+    st.markdown("#### 📊 Recommended Actions")
     tips = []
-    if tenure < 12: tips.append("New customer — offer onboarding incentives.")
-    if monthly > 80: tips.append("High monthly charge — suggest a loyalty discount.")
-    if online_security == "no": tips.append("Offer Online Security package.")
-    if sentiment < 0: tips.append("Negative sentiment — follow up with support.")
-    if not tips: tips.append("Customer appears stable — continue monitoring.")
+    if tenure < 12: tips.append("🟡 New customer — offer onboarding incentives.")
+    if monthly > 80: tips.append("🔴 High monthly charge — suggest loyalty discount.")
+    if online_security == "no": tips.append("🟠 Offer Online Security package.")
+    if sentiment < 0: tips.append("🔴 Negative sentiment — follow up with support.")
+    if not tips: tips.append("🟢 Customer appears stable — continue monitoring.")
     for t in tips:
         st.write("- " + t)
 
