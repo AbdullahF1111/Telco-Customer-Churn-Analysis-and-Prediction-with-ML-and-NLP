@@ -1,16 +1,14 @@
 """
-📊 Telco Customer Churn Prediction App
-- Predicts churn probability using your trained ML model (Random Forest).
-- Accepts ~10 key customer inputs + optional feedback (converted to sentiment).
-- Automatically aligns inputs with model’s training features.
-- Includes dynamic feature importance and optional dataset EDA upload.
+Telco Customer Churn Prediction Streamlit App
+- Uses your trained Random Forest model and scaler from /artifacts
+- Allows customer info + optional review (converted to sentiment)
+- Automatically preprocesses input to match model features
+- Includes simple EDA dashboard if CSV is uploaded
 """
 
-import json
 import os
+import json
 from pathlib import Path
-from typing import List
-
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -18,233 +16,211 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
 
-# ===========================
-# ⚙️ App Configuration
-# ===========================
-st.set_page_config(page_title="Telco Churn Predictor", layout="wide", page_icon="📱")
-st.title("📈 Telco Customer Churn Prediction — Interactive App")
-st.markdown("""
-Welcome to the Telco Churn Prediction Dashboard!  
-Enter customer details below to predict churn risk and get actionable insights.  
-Optionally, you can upload a dataset for quick EDA.
-""")
+# --------------------- App Setup ---------------------
+st.set_page_config(page_title="Telco Churn Predictor", layout="wide", page_icon="📊")
+st.title("📈 Telco Customer Churn Prediction App")
+st.markdown(
+    """
+Enter customer details below — optional fields have defaults.  
+You can also add a short customer review to automatically compute a sentiment score.
+"""
+)
 
 ARTIFACTS_DIR = Path("artifacts")
 MODEL_PATH = ARTIFACTS_DIR / "model.pkl"
 SCALER_PATH = ARTIFACTS_DIR / "scaler.pkl"
 FEATURES_PATH = ARTIFACTS_DIR / "feature_columns.json"
 
-# ===========================
-# 💬 Simple Sentiment Logic
-# ===========================
-POS_WORDS = {"good","great","excellent","happy","satisfied","love","recommend","reliable","best","positive","pleased"}
-NEG_WORDS = {"bad","terrible","awful","angry","hate","disappointed","slow","worst","problem","complaint","expensive"}
+# --------------------- Sentiment Converter ---------------------
+POS_WORDS = {"good","great","excellent","satisfied","happy","love","recommend","reliable","best","positive","pleased","fast"}
+NEG_WORDS = {"bad","terrible","awful","unhappy","angry","hate","disappointed","slow","worst","problem","issue","complain","expensive"}
 
 def simple_sentiment_score(text: str) -> float:
-    """Tiny rule-based sentiment analyzer."""
-    if not text or len(text.strip()) == 0:
+    if not text or not isinstance(text, str) or len(text.strip()) == 0:
         return 0.0
-    words = text.lower().split()
+    txt = text.lower()
+    words = [w.strip(".,!?()[]\"'") for w in txt.split()]
     pos = sum(1 for w in words if w in POS_WORDS)
     neg = sum(1 for w in words if w in NEG_WORDS)
-    if pos + neg == 0:
+    if pos == 0 and neg == 0:
         return 0.0
-    return round((pos - neg) / (pos + neg), 2)
+    return float(np.clip((pos - neg) / max(1, (pos + neg)), -1, 1))
 
-# ===========================
-# 🧠 Load Artifacts
-# ===========================
+# --------------------- Load Artifacts ---------------------
+@st.cache_resource
 def load_artifacts():
-    info = {"model": None, "scaler": None, "feat_cols": None, "loaded": False}
     try:
-        if MODEL_PATH.exists():
-            info["model"] = joblib.load(MODEL_PATH)
-        if SCALER_PATH.exists():
-            info["scaler"] = joblib.load(SCALER_PATH)
-        if FEATURES_PATH.exists():
-            info["feat_cols"] = json.loads(FEATURES_PATH.read_text(encoding="utf-8"))
-        if info["model"] is not None and info["feat_cols"] is not None:
-            info["loaded"] = True
+        model = joblib.load(MODEL_PATH)
+        scaler = joblib.load(SCALER_PATH)
+        feat_cols = json.loads(FEATURES_PATH.read_text())
+        st.success("✅ Loaded model, scaler, and feature columns successfully.")
+        return model, scaler, feat_cols
     except Exception as e:
-        st.warning(f"Could not load model artifacts: {e}")
-    return info
+        st.error(f"❌ Could not load model artifacts: {e}")
+        return None, None, None
 
-artifacts = load_artifacts()
-if artifacts["loaded"]:
-    st.success("✅ Model & artifacts loaded successfully.")
-else:
-    st.warning("⚠️ Could not find model artifacts — ensure they’re in the `artifacts/` folder.")
+model, scaler, model_feat_cols = load_artifacts()
 
-model = artifacts["model"]
-scaler = artifacts.get("scaler")
-model_feat_cols = artifacts["feat_cols"] if artifacts["feat_cols"] else []
-
-# ===========================
-# 🧩 Preprocessing Function
-# ===========================
-def preprocess_input(df_input: pd.DataFrame, feat_cols: List[str], scaler=None):
+# --------------------- Preprocessing ---------------------
+def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
     df = df_input.copy()
-    for c in df.select_dtypes(include="object").columns:
-        df[c] = df[c].astype(str).str.strip().str.lower()
 
-    # Clean up text-based "no internet/phone service"
-    for col in ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection','TechSupport','StreamingTV','StreamingMovies']:
+    # clean string columns
+    for c in df.select_dtypes(include="object").columns:
+        df[c] = df[c].astype(str).str.strip()
+
+    # clean service fields
+    internet_cols = ['OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies']
+    for col in internet_cols:
         if col in df.columns:
             df[col] = df[col].replace({"no internet service": "no"})
+
     if "MultipleLines" in df.columns:
         df["MultipleLines"] = df["MultipleLines"].replace({"no phone service": "no"})
 
-    # Binary encoding
+    # HasInternet
+    if "InternetService" in df.columns:
+        df["HasInternet"] = df["InternetService"].apply(lambda v: 0 if str(v).lower() == "no" else 1)
+
+    # yes/no -> 1/0
     yesno_cols = ['Partner','Dependents','PhoneService','OnlineSecurity','OnlineBackup',
                   'DeviceProtection','TechSupport','StreamingTV','StreamingMovies','PaperlessBilling']
     for col in yesno_cols:
         if col in df.columns:
             df[col] = df[col].map({"yes": 1, "no": 0}).fillna(0).astype(int)
 
-    # HasInternet
-    if "InternetService" in df.columns:
-        df["HasInternet"] = df["InternetService"].apply(lambda v: 0 if v == "no" else 1)
+    # numeric fields
+    for c in ["tenure","MonthlyCharges","TotalCharges","feedback_length","sentiment"]:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
 
-    # SeniorCitizen
-    if "SeniorCitizen" in df.columns:
-        df["SeniorCitizen"] = pd.to_numeric(df["SeniorCitizen"], errors="coerce").fillna(0).astype(int)
-
-    # One-hot encode categorical features
+    # One-hot encode
     multi_cols = [c for c in ["InternetService","Contract","PaymentMethod","gender"] if c in df.columns]
     df = pd.get_dummies(df, columns=multi_cols, drop_first=False)
 
-    # Align to model feature list
-    for c in feat_cols:
-        if c not in df.columns:
-            df[c] = 0
-    df = df[feat_cols]
+    # Align columns
+    if feat_cols is not None:
+        for c in feat_cols:
+            if c not in df.columns:
+                df[c] = 0
+        df = df[feat_cols]
+    else:
+        df = df.select_dtypes(include=np.number)
 
-    # Scale numeric features
-    num_cols = [c for c in ['tenure','MonthlyCharges','TotalCharges','feedback_length','sentiment'] if c in df.columns]
+    # Scale numeric
     if scaler is not None:
+        num_cols = [c for c in ["tenure","MonthlyCharges","TotalCharges","feedback_length","sentiment"] if c in df.columns]
         try:
             df[num_cols] = scaler.transform(df[num_cols])
         except Exception as e:
-            st.warning(f"Scaling failed: {e}")
+            st.warning(f"Scaler transform failed: {e}")
+
     return df
 
-# ===========================
-# 🧍 Input Form
-# ===========================
-st.header("🎯 Customer Input Form")
+# --------------------- Input Form ---------------------
+st.header("📋 Customer Input")
 
-with st.form("customer_form"):
-    col1, col2, col3 = st.columns(3)
-    with col1:
+with st.form("customer_input"):
+    c1, c2, c3 = st.columns(3)
+    with c1:
         tenure = st.number_input("Tenure (months)", 0, 100, 24)
-        monthly = st.number_input("Monthly Charges ($)", 0.0, 200.0, 75.0)
-        total = st.number_input("Total Charges ($)", 0.0, 9000.0, 1500.0)
-    with col2:
-        senior = st.selectbox("Senior Citizen", [0, 1])
-        partner = st.selectbox("Partner", ["no", "yes"])
-        dependents = st.selectbox("Dependents", ["no", "yes"])
-    with col3:
-        internet = st.selectbox("Internet Service", ["fiber optic", "dsl", "no"])
-        contract = st.selectbox("Contract", ["month-to-month", "one year", "two year"])
-        paperless = st.selectbox("Paperless Billing", ["yes", "no"])
+        monthly = st.number_input("Monthly Charges", 0.0, 1000.0, 75.0)
+        total = st.number_input("Total Charges", 0.0, 10000.0, 1800.0)
+    with c2:
+        senior = st.selectbox("Senior Citizen", [0, 1], 0)
+        partner = st.selectbox("Partner", ["yes", "no"], 1)
+        dependents = st.selectbox("Dependents", ["yes", "no"], 1)
+    with c3:
+        internet = st.selectbox("Internet Service", ["fiber optic","dsl","no"], 1)
+        contract = st.selectbox("Contract", ["month-to-month","one year","two year"], 0)
+        paperless = st.selectbox("Paperless Billing", ["yes","no"], 0)
 
     st.markdown("### Optional Features")
-    col4, col5 = st.columns(2)
-    with col4:
-        online_security = st.selectbox("Online Security", ["yes", "no", "no internet service"])
-        tech_support = st.selectbox("Tech Support", ["yes", "no", "no internet service"])
-        phone_service = st.selectbox("Phone Service", ["yes", "no"])
-    with col5:
-        multiple_lines = st.selectbox("Multiple Lines", ["no", "yes", "no phone service"])
-        streaming_tv = st.selectbox("Streaming TV", ["no", "yes", "no internet service"])
-        streaming_movies = st.selectbox("Streaming Movies", ["no", "yes", "no internet service"])
-        device_protection = st.selectbox("Device Protection", ["no", "yes", "no internet service"])
-        payment = st.selectbox("Payment Method", [
-            "electronic check", "mailed check", "bank transfer (automatic)", "credit card (automatic)"
-        ])
+    c4, c5 = st.columns(2)
+    with c4:
+        online_security = st.selectbox("Online Security", ["yes","no","no internet service"], 1)
+        tech_support = st.selectbox("Tech Support", ["yes","no","no internet service"], 1)
+        device_protection = st.selectbox("Device Protection", ["yes","no","no internet service"], 1)
+    with c5:
+        streaming_tv = st.selectbox("Streaming TV", ["yes","no","no internet service"], 1)
+        streaming_movies = st.selectbox("Streaming Movies", ["yes","no","no internet service"], 1)
+        payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
 
-    review_text = st.text_area("Customer Review (optional for sentiment analysis)", height=100)
+    review_text = st.text_area("📝 Customer Review (optional)")
     submitted = st.form_submit_button("🔮 Predict Churn")
 
-# ===========================
-# 🔍 Prediction Section
-# ===========================
 if submitted:
     sentiment = simple_sentiment_score(review_text)
-    feedback_length = len(review_text.split()) if review_text else 0
+    feedback_len = len(review_text.split()) if review_text else 0
 
     row = {
-        "SeniorCitizen": senior, "tenure": tenure, "MonthlyCharges": monthly, "TotalCharges": total,
-        "Partner": partner, "Dependents": dependents, "InternetService": internet,
-        "Contract": contract, "PaperlessBilling": paperless,
-        "OnlineSecurity": online_security, "TechSupport": tech_support, "PhoneService": phone_service,
-        "MultipleLines": multiple_lines, "StreamingTV": streaming_tv,
-        "StreamingMovies": streaming_movies, "DeviceProtection": device_protection,
-        "PaymentMethod": payment, "gender": "male",
-        "feedback_length": feedback_length, "sentiment": sentiment
+        "SeniorCitizen": senior,
+        "tenure": tenure,
+        "MonthlyCharges": monthly,
+        "TotalCharges": total,
+        "Partner": partner,
+        "Dependents": dependents,
+        "InternetService": internet,
+        "Contract": contract,
+        "PaperlessBilling": paperless,
+        "OnlineSecurity": online_security,
+        "TechSupport": tech_support,
+        "DeviceProtection": device_protection,
+        "StreamingTV": streaming_tv,
+        "StreamingMovies": streaming_movies,
+        "PaymentMethod": payment,
+        "feedback_length": feedback_len,
+        "sentiment": sentiment,
+        "gender": "male"  # default
     }
 
     df_input = pd.DataFrame([row])
     X_input = preprocess_input(df_input, feat_cols=model_feat_cols, scaler=scaler)
 
-    proba = float(model.predict_proba(X_input)[0, 1])
-    pred = int(proba >= 0.5)
+    # ✅ Ensure numeric
+    X_input = X_input.astype(float).fillna(0)
 
-    st.subheader("🧾 Prediction Result")
-    colA, colB = st.columns([1, 2])
-    with colA:
-        st.metric("Churn Prediction", f"{pred} ({'Yes' if pred==1 else 'No'})")
-        st.progress(proba)
-        st.write(f"**Churn Probability:** {proba:.2%}")
-    with colB:
-        st.info("Recommended Business Actions:")
-        if tenure < 12:
-            st.write("- Offer welcome retention program for new customers.")
-        if monthly > 80:
-            st.write("- Consider loyalty discounts for high spenders.")
-        if online_security == "no":
-            st.write("- Promote online security bundles to reduce churn risk.")
-        if sentiment < 0:
-            st.write("- Negative feedback detected: prioritize customer support outreach.")
-        else:
-            st.write("- No strong churn indicators detected — maintain engagement.")
+    try:
+        proba = float(model.predict_proba(X_input)[0, 1])
+        pred = int(proba >= 0.5)
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
+        st.stop()
 
-    # ===========================
-    # 🔥 Feature Importance (Dynamic)
-    # ===========================
-    if hasattr(model, "feature_importances_"):
-        importances = pd.Series(model.feature_importances_, index=model_feat_cols)
-        top_features = importances.sort_values(ascending=False).head(10)
-        st.subheader("Feature Importance (Top 10)")
-        fig, ax = plt.subplots(figsize=(8, 4))
-        sns.barplot(x=top_features.values, y=top_features.index, palette="viridis", ax=ax)
-        st.pyplot(fig)
+    st.subheader("🧠 Prediction Result")
+    st.metric("Churn Prediction (1 = Yes)", pred)
+    st.progress(proba)
+    st.write(f"**Churn Probability:** {proba:.2%}")
 
-# ===========================
-# 📊 Optional Dataset EDA
-# ===========================
-st.header("📈 Quick EDA — Upload Dataset")
-uploaded = st.file_uploader("Upload your Telco dataset (CSV)", type=["csv"])
+    st.markdown("#### 📊 Recommendations")
+    tips = []
+    if tenure < 12: tips.append("New customer — offer onboarding incentives.")
+    if monthly > 80: tips.append("High monthly charge — suggest a loyalty discount.")
+    if online_security == "no": tips.append("Offer Online Security package.")
+    if sentiment < 0: tips.append("Negative sentiment — follow up with support.")
+    if not tips: tips.append("Customer appears stable — continue monitoring.")
+    for t in tips:
+        st.write("- " + t)
+
+# --------------------- EDA Section ---------------------
+st.markdown("---")
+st.header("📈 Quick Analysis (Upload Dataset)")
+uploaded = st.file_uploader("Upload Telco dataset (optional)", type=["csv"])
+
 if uploaded is not None:
-    df_up = pd.read_csv(uploaded)
-    st.write("Sample Data Preview:")
-    st.dataframe(df_up.head(5))
+    df = pd.read_csv(uploaded)
+    st.write("Preview:", df.head())
 
-    if "Churn" in df_up.columns:
+    if "Churn" in df.columns:
         st.subheader("Churn Distribution")
         fig, ax = plt.subplots()
-        sns.countplot(x="Churn", data=df_up, palette="coolwarm", ax=ax)
+        sns.countplot(x="Churn", data=df, ax=ax, palette="coolwarm")
         st.pyplot(fig)
 
-        df_enc = pd.get_dummies(df_up, drop_first=True)
+        df_enc = pd.get_dummies(df, drop_first=False)
         corr = df_enc.corr()["Churn"].sort_values(ascending=False)
-        st.subheader("Feature Correlation with Churn")
-        fig, ax = plt.subplots(figsize=(6, 10))
-        sns.heatmap(corr.to_frame(), annot=True, cmap="coolwarm", cbar=False)
-        st.pyplot(fig)
+        st.subheader("Top Correlated Features")
+        st.bar_chart(corr.head(10))
 
-# ===========================
-# 🧾 Footer
-# ===========================
 st.markdown("---")
-st.caption("Developed by Abdullah Fahlo — Data Science Portfolio Project")
+st.caption("Developed by Abdullah Fahlo — Telco Churn ML + NLP Project")
