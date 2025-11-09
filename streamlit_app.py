@@ -125,7 +125,7 @@ with st.form("customer_input"):
     with c3:
         payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
         phone_service = st.selectbox("Phone Service", ["yes","no"], 0)
-        online_security = st.selectbox("Online Security", ["yes","no","no internet service"], 1)
+        online_security = st.selectbox("Online Security", ["yes","no"], 1)
 
     # --- Conditional: Hide MultipleLines if no phone service ---
     if phone_service == "yes":
