@@ -90,7 +90,7 @@ telco-customer-churn-analysis-and-prediction-with-ml-and-nlp/
 
 ### 💬 Streamlit App Features
 
-**Live Demo:** [Insert Streamlit Cloud URL here]
+**Live Demo:** [https://telco-customer-churn-analysis-and-prediction-with-ml-and-nlp-w.streamlit.app/]
 
 The app provides:
 - 📊 **Interactive customer input form** with conditional fields
