@@ -205,7 +205,7 @@ st.markdown("---")
 st.header("📊 Exploratory Data Analysis & Insights")
 
 st.markdown("""
-### 🧩 Project Overview
+###  Project Overview
 This analysis explores customer churn patterns using machine learning and NLP techniques. 
 The model identifies at-risk customers and provides actionable insights for retention strategies.
 """)
@@ -282,7 +282,7 @@ insight_col1, insight_col2 = st.columns(2)
 
 with insight_col1:
     st.markdown("""
-    **🚨 High-Risk Segments:**
+    #### High-Risk Segments:
     - Month-to-month contracts: **45% churn rate**
     - Electronic check users: **45% higher churn**
     - No Tech Support: **42% churn rate**
@@ -292,7 +292,7 @@ with insight_col1:
 
 with insight_col2:
     st.markdown("""
-    **📊 Customer Behavior:**
+    #### Customer Behavior:
     - Shorter tenure (<12 months): High vulnerability
     - Monthly charges >$75: Price sensitivity
     - Negative sentiment: Strong churn correlation
