@@ -185,4 +185,3 @@ This project is licensed under the **MIT License** — you're free to use and ad
 3. **Add your contact links** (LinkedIn, portfolio)
 4. **Include a screenshot** of your Streamlit app in action
 
-This README now accurately represents your project and showcases your data science skills effectively!
