@@ -1,10 +1,8 @@
 """
 Telco Customer Churn Prediction Streamlit App
 - Clean & Professional UI
-- Dynamic inputs (hide multiple lines when no phone service)
-- Real-time field hiding for internet-related services
+- Real-time dynamic field hiding
 - Uses pretrained NLP model for sentiment analysis
-- Uses trained Random Forest model and scaler from /artifacts
 """
 
 import os
@@ -33,15 +31,27 @@ MODEL_PATH = ARTIFACTS_DIR / "model.pkl"
 SCALER_PATH = ARTIFACTS_DIR / "scaler.pkl"
 FEATURES_PATH = ARTIFACTS_DIR / "feature_columns.json"
 
+# --------------------- Initialize Session State ---------------------
+if 'form_data' not in st.session_state:
+    st.session_state.form_data = {
+        'internet_service': 'dsl',
+        'phone_service': 'yes',
+        'online_security': 'no',
+        'multiple_lines': 'no',
+        'device_protection': 'no',
+        'streaming_tv': 'no',
+        'streaming_movies': 'no',
+        'tech_support': 'no',
+        'online_backup': 'no'
+    }
+
 # --------------------- Pretrained Sentiment Analysis ---------------------
 @st.cache_resource
 def load_sentiment_model():
     try:
-        # Using a lightweight pretrained model for sentiment analysis
         sentiment_pipeline = pipeline("sentiment-analysis", 
                                     model="distilbert-base-uncased-finetuned-sst-2-english",
                                     return_all_scores=True)
-        st.success("✅ Loaded pretrained sentiment model successfully.")
         return sentiment_pipeline
     except Exception as e:
         st.warning(f"⚠️ Could not load pretrained model: {e}. Using fallback method.")
@@ -55,13 +65,12 @@ def analyze_sentiment(text: str) -> float:
     
     if sentiment_model is not None:
         try:
-            results = sentiment_model(text[:512])  # Truncate to model limit
+            results = sentiment_model(text[:512])
             if results and len(results) > 0:
                 scores = results[0]
                 for score in scores:
                     if score['label'] == 'POSITIVE':
                         return float(score['score'])
-                # If no positive score found, return negative sentiment
                 for score in scores:
                     if score['label'] == 'NEGATIVE':
                         return -float(score['score'])
@@ -87,7 +96,6 @@ def load_artifacts():
         model = joblib.load(MODEL_PATH)
         scaler = joblib.load(SCALER_PATH)
         feat_cols = json.loads(FEATURES_PATH.read_text())
-        st.success("✅ Loaded model, scaler, and feature columns successfully.")
         return model, scaler, feat_cols
     except Exception as e:
         st.error(f"❌ Could not load model artifacts: {e}")
@@ -146,12 +154,6 @@ def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
 # --------------------- Input Form ---------------------
 st.header("🧾 Customer Input")
 
-# Initialize session state for form values if not exists
-if 'internet_service' not in st.session_state:
-    st.session_state.internet_service = "dsl"
-if 'phone_service' not in st.session_state:
-    st.session_state.phone_service = "yes"
-
 with st.form("customer_input"):
     c1, c2, c3 = st.columns(3)
     
@@ -161,13 +163,18 @@ with st.form("customer_input"):
         total = st.number_input("Total Charges", 0.0, 10000.0, 1800.0)
     
     with c2:
-        # Use session state to maintain values and trigger re-runs
+        # Internet Service - this will trigger immediate updates
         internet = st.selectbox(
             "Internet Service", 
             ["fiber optic", "dsl", "no"], 
-            index=1,
-            key="internet_service"
+            index=["fiber optic", "dsl", "no"].index(st.session_state.form_data['internet_service'])
         )
+        
+        # Update session state immediately when internet service changes
+        if internet != st.session_state.form_data['internet_service']:
+            st.session_state.form_data['internet_service'] = internet
+            st.rerun()
+        
         contract = st.selectbox("Contract", ["month-to-month", "one year", "two year"], 0)
         paperless = st.selectbox("Paperless Billing", ["yes", "no"], 0)
     
@@ -177,36 +184,92 @@ with st.form("customer_input"):
             ["electronic check", "mailed check", "bank transfer (automatic)", "credit card (automatic)"], 
             0
         )
+        
+        # Phone Service - this will trigger immediate updates
         phone_service = st.selectbox(
             "Phone Service", 
             ["yes", "no"], 
-            index=0,
-            key="phone_service"
+            index=["yes", "no"].index(st.session_state.form_data['phone_service'])
         )
         
+        # Update session state immediately when phone service changes
+        if phone_service != st.session_state.form_data['phone_service']:
+            st.session_state.form_data['phone_service'] = phone_service
+            st.rerun()
+        
         # Show Online Security only if internet service is not "no"
-        if st.session_state.internet_service != "no":
-            online_security = st.selectbox("Online Security", ["yes", "no"], 1)
+        if st.session_state.form_data['internet_service'] != "no":
+            online_security = st.selectbox(
+                "Online Security", 
+                ["yes", "no"],
+                index=["yes", "no"].index(st.session_state.form_data['online_security'])
+            )
+            # Update session state
+            if online_security != st.session_state.form_data['online_security']:
+                st.session_state.form_data['online_security'] = online_security
         else:
             online_security = "no internet service"
-            st.info("No internet service selected")
+            st.info("ℹ️ Not available: No internet service")
 
     # --- Conditional: Show MultipleLines only if phone service is "yes" ---
-    if st.session_state.phone_service == "yes":
-        multiple_lines = st.selectbox("Multiple Lines", ["no", "yes"], 0)
+    if st.session_state.form_data['phone_service'] == "yes":
+        multiple_lines = st.selectbox(
+            "Multiple Lines", 
+            ["no", "yes"],
+            index=["no", "yes"].index(st.session_state.form_data['multiple_lines'])
+        )
+        # Update session state
+        if multiple_lines != st.session_state.form_data['multiple_lines']:
+            st.session_state.form_data['multiple_lines'] = multiple_lines
     else:
         multiple_lines = "no phone service"
-        st.info("No phone service selected")
+        st.info("ℹ️ Not available: No phone service")
 
     # --- Optional Fields in Expander ---
     with st.expander("📂 Enter Additional Info (optional)"):
+        st.write("**Internet Services**")
+        
         # Only show internet-related services if customer has internet
-        if st.session_state.internet_service != "no":
-            device_protection = st.selectbox("Device Protection", ["yes", "no"], 1)
-            streaming_tv = st.selectbox("Streaming TV", ["yes", "no"], 1)
-            streaming_movies = st.selectbox("Streaming Movies", ["yes", "no"], 1)
-            tech_support = st.selectbox("Tech Support", ["yes", "no"], 1)
-            online_backup = st.selectbox("Online Backup", ["yes", "no"], 1)
+        if st.session_state.form_data['internet_service'] != "no":
+            device_protection = st.selectbox(
+                "Device Protection", 
+                ["yes", "no"],
+                index=["yes", "no"].index(st.session_state.form_data['device_protection'])
+            )
+            if device_protection != st.session_state.form_data['device_protection']:
+                st.session_state.form_data['device_protection'] = device_protection
+            
+            streaming_tv = st.selectbox(
+                "Streaming TV", 
+                ["yes", "no"],
+                index=["yes", "no"].index(st.session_state.form_data['streaming_tv'])
+            )
+            if streaming_tv != st.session_state.form_data['streaming_tv']:
+                st.session_state.form_data['streaming_tv'] = streaming_tv
+            
+            streaming_movies = st.selectbox(
+                "Streaming Movies", 
+                ["yes", "no"],
+                index=["yes", "no"].index(st.session_state.form_data['streaming_movies'])
+            )
+            if streaming_movies != st.session_state.form_data['streaming_movies']:
+                st.session_state.form_data['streaming_movies'] = streaming_movies
+            
+            tech_support = st.selectbox(
+                "Tech Support", 
+                ["yes", "no"],
+                index=["yes", "no"].index(st.session_state.form_data['tech_support'])
+            )
+            if tech_support != st.session_state.form_data['tech_support']:
+                st.session_state.form_data['tech_support'] = tech_support
+            
+            online_backup = st.selectbox(
+                "Online Backup", 
+                ["yes", "no"],
+                index=["yes", "no"].index(st.session_state.form_data['online_backup'])
+            )
+            if online_backup != st.session_state.form_data['online_backup']:
+                st.session_state.form_data['online_backup'] = online_backup
         else:
             # Set default values for internet-related services when no internet
             device_protection = "no internet service"
@@ -216,6 +279,7 @@ with st.form("customer_input"):
             online_backup = "no internet service"
             st.info("ℹ️ Internet-related services are not available because Internet Service is 'no'")
         
+        st.write("**Personal Information**")
         partner = st.selectbox("Partner", ["yes", "no"], 1)
         dependents = st.selectbox("Dependents", ["yes", "no"], 1)
         senior = st.selectbox("Senior Citizen", [0, 1], 0)
@@ -226,6 +290,10 @@ with st.form("customer_input"):
 
 # --------------------- Prediction ---------------------
 if submitted:
+    if model is None:
+        st.error("❌ Model not loaded. Cannot make prediction.")
+        st.stop()
+        
     sentiment = analyze_sentiment(review_text)
     feedback_len = len(review_text.split()) if review_text else 0
 
@@ -242,11 +310,11 @@ if submitted:
         "PhoneService": phone_service,
         "MultipleLines": multiple_lines,
         "OnlineSecurity": online_security,
-        "OnlineBackup": online_backup if st.session_state.internet_service != "no" else "no internet service",
-        "TechSupport": tech_support if st.session_state.internet_service != "no" else "no internet service",
-        "DeviceProtection": device_protection if st.session_state.internet_service != "no" else "no internet service",
-        "StreamingTV": streaming_tv if st.session_state.internet_service != "no" else "no internet service",
-        "StreamingMovies": streaming_movies if st.session_state.internet_service != "no" else "no internet service",
+        "OnlineBackup": online_backup if st.session_state.form_data['internet_service'] != "no" else "no internet service",
+        "TechSupport": tech_support if st.session_state.form_data['internet_service'] != "no" else "no internet service",
+        "DeviceProtection": device_protection if st.session_state.form_data['internet_service'] != "no" else "no internet service",
+        "StreamingTV": streaming_tv if st.session_state.form_data['internet_service'] != "no" else "no internet service",
+        "StreamingMovies": streaming_movies if st.session_state.form_data['internet_service'] != "no" else "no internet service",
         "PaymentMethod": payment,
         "feedback_length": feedback_len,
         "sentiment": sentiment,
@@ -273,14 +341,6 @@ if submitted:
             st.error(f"🚨 HIGH CHURN RISK: {proba:.2%}")
         else:
             st.success(f"✅ LOW CHURN RISK: {proba:.2%}")
-        
-        # Progress bar with color coding
-        if proba < 0.3:
-            bar_color = "green"
-        elif proba < 0.7:
-            bar_color = "orange"
-        else:
-            bar_color = "red"
         
         st.progress(proba)
     
@@ -315,7 +375,7 @@ if submitted:
         tips.append("🟡 **New Customer**: Consider onboarding incentives and check-in calls.")
     if monthly > 80: 
         tips.append("🟠 **High Monthly Charge**: Suggest loyalty discount or value-add services.")
-    if st.session_state.internet_service != "no" and online_security == "no": 
+    if st.session_state.form_data['internet_service'] != "no" and online_security == "no": 
         tips.append("🟠 **Security Opportunity**: Offer Online Security package.")
     if contract == "month-to-month": 
         tips.append("🟡 **Flexible Contract**: Consider offering contract incentives.")
@@ -329,24 +389,6 @@ if submitted:
     
     for t in tips:
         st.write("- " + t)
-    
-    # Feature importance visualization (if available)
-    if hasattr(model, 'feature_importances_'):
-        st.markdown("#### 🔍 Top Factors Influencing Prediction")
-        try:
-            # Get top 10 features
-            feature_importance = pd.DataFrame({
-                'feature': model_feat_cols,
-                'importance': model.feature_importances_
-            }).sort_values('importance', ascending=False).head(10)
-            
-            fig, ax = plt.subplots(figsize=(10, 6))
-            sns.barplot(data=feature_importance, x='importance', y='feature', ax=ax)
-            ax.set_title('Top 10 Feature Importances')
-            ax.set_xlabel('Importance')
-            st.pyplot(fig)
-        except Exception as e:
-            st.warning(f"Could not display feature importance: {e}")
 # -------------------- EDA Section ---------------------
 st.markdown("---")
 st.header("📊 Exploratory Data Analysis & Insights")
