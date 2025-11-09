@@ -214,11 +214,11 @@ Below are the highlights of the analysis and model performance.
 
 # --- Display Uploaded Figures ---
 eda_imgs = {
-    "Feature Importance": "8fb85dc9-32bf-417c-b665-47c56d95e396.png",
-    "Numerical vs Churn": "e45ce6c2-2d3d-4206-a72d-d38dec9b673a.png",
-    "Categorical vs Churn (Set 1)": "9cd83850-3bbf-4bcf-950b-22208fa704f2.png",
-    "Numerical vs Churn (Alt)": "a71e5bb7-7ff0-472e-9465-7c917c9e5949.png",
-    "Categorical vs Churn (Set 2)": "66b85777-7c13-4bf1-afa5-92393b355cc8.png",
+    "Feature Importance": "ROC_curve.png",
+    "Numerical vs Churn": "cat_features.png",
+    "Categorical vs Churn (Set 1)": "churn_distribution.png",
+    "Numerical vs Churn (Alt)": "feature_corr.png",
+    "Categorical vs Churn (Set 2)": "num_features.png",
 }
 
 for title, img_id in eda_imgs.items():
