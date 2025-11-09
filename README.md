@@ -1,5 +1,3 @@
-
-```markdown
 # 📞 Telco Customer Churn Prediction with ML & NLP
 
 ### 🎯 Project Overview
