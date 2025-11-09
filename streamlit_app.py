@@ -1,11 +1,10 @@
 """
 Telco Customer Churn Prediction Streamlit App
-- Clean, responsive UI
-- Dynamic inputs (hide dependent fields automatically)
-- Uses trained Random Forest model and scaler from /artifacts
+- Fully dynamic UI (instant field hiding)
+- Uses your trained Random Forest model from /artifacts
+- Optional expanders for clarity and clean design
 """
 
-import os
 import json
 from pathlib import Path
 import numpy as np
@@ -16,11 +15,11 @@ import joblib
 # --------------------- App Setup ---------------------
 st.set_page_config(page_title="Telco Churn Predictor", layout="wide", page_icon="📊")
 st.title("📈 Telco Customer Churn Prediction App")
+
 st.markdown(
     """
-Enter **customer details** below.  
-The form adapts dynamically — unnecessary options are hidden based on your choices.  
-You can also add a short review for automatic sentiment scoring.
+Enter **customer details** below — irrelevant fields will hide automatically  
+when you choose “No” for Internet Service or Phone Service.
 """
 )
 
@@ -51,7 +50,7 @@ def load_artifacts():
         model = joblib.load(MODEL_PATH)
         scaler = joblib.load(SCALER_PATH)
         feat_cols = json.loads(FEATURES_PATH.read_text())
-        st.success("✅ Model and scaler loaded successfully.")
+        st.success("✅ Model loaded successfully.")
         return model, scaler, feat_cols
     except Exception as e:
         st.error(f"❌ Could not load model artifacts: {e}")
@@ -63,31 +62,34 @@ model, scaler, model_feat_cols = load_artifacts()
 def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
     df = df_input.copy()
 
+    # clean strings
     for c in df.select_dtypes(include="object").columns:
         df[c] = df[c].astype(str).str.strip()
 
-    # Handle service columns
-    internet_cols = ['OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies']
-    for col in internet_cols:
+    # handle service aliases
+    for col in ['OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies']:
         if col in df.columns:
             df[col] = df[col].replace({"no internet service": "no"})
-
     if "MultipleLines" in df.columns:
         df["MultipleLines"] = df["MultipleLines"].replace({"no phone service": "no"})
 
+    # HasInternet flag
     if "InternetService" in df.columns:
         df["HasInternet"] = df["InternetService"].apply(lambda v: 0 if str(v).lower() == "no" else 1)
 
+    # yes/no mapping
     yesno_cols = ['Partner','Dependents','PhoneService','MultipleLines','OnlineSecurity','OnlineBackup',
                   'DeviceProtection','TechSupport','StreamingTV','StreamingMovies','PaperlessBilling']
     for col in yesno_cols:
         if col in df.columns:
             df[col] = df[col].map({"yes": 1, "no": 0}).fillna(0).astype(int)
 
+    # numerics
     for c in ["tenure","MonthlyCharges","TotalCharges","feedback_length","sentiment"]:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
 
+    # one-hot
     multi_cols = [c for c in ["InternetService","Contract","PaymentMethod","gender"] if c in df.columns]
     df = pd.get_dummies(df, columns=multi_cols, drop_first=False)
 
@@ -97,63 +99,67 @@ def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
                 df[c] = 0
         df = df[feat_cols]
 
-    # Scale numeric
+    # scale
     if scaler is not None:
         num_cols = [c for c in ["tenure","MonthlyCharges","TotalCharges","feedback_length","sentiment"] if c in df.columns]
         try:
             df[num_cols] = scaler.transform(df[num_cols])
         except Exception as e:
             st.warning(f"⚠️ Scaling failed: {e}")
-
     return df
 
-# --------------------- Input Form ---------------------
-st.header("🧾 Customer Information")
+# --------------------- Input UI (Dynamic) ---------------------
+st.header("🧾 Customer Details")
 
-with st.form("customer_input"):
+col1, col2, col3 = st.columns(3)
+with col1:
+    tenure = st.number_input("Tenure (months)", 0, 100, 24)
+    monthly = st.number_input("Monthly Charges", 0.0, 1000.0, 75.0)
+    total = st.number_input("Total Charges", 0.0, 10000.0, 1800.0)
+with col2:
+    internet = st.selectbox("Internet Service", ["fiber optic", "dsl", "no"], 1)
+    contract = st.selectbox("Contract", ["month-to-month","one year","two year"], 0)
+    paperless = st.selectbox("Paperless Billing", ["yes","no"], 0)
+with col3:
+    payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
+    phone_service = st.selectbox("Phone Service", ["yes","no"], 0)
+    online_security = st.selectbox("Online Security", ["yes","no"], 1)
+
+# --- Conditional: Multiple Lines only if phone_service = yes ---
+if phone_service == "yes":
+    multiple_lines = st.selectbox("Multiple Lines", ["yes","no"], 0)
+else:
+    multiple_lines = "no phone service"
+
+# --- Conditional: Internet-dependent services ---
+if internet != "no":
+    st.markdown("### 🌐 Internet & Streaming Services")
     c1, c2, c3 = st.columns(3)
     with c1:
-        tenure = st.number_input("Tenure (months)", 0, 100, 24)
-        monthly = st.number_input("Monthly Charges", 0.0, 1000.0, 75.0)
-        total = st.number_input("Total Charges", 0.0, 10000.0, 1800.0)
+        device_protection = st.selectbox("Device Protection", ["yes","no"], 1)
+        tech_support = st.selectbox("Tech Support", ["yes","no"], 1)
     with c2:
-        internet = st.selectbox("Internet Service", ["fiber optic", "dsl", "no"], 1)
-        contract = st.selectbox("Contract", ["month-to-month","one year","two year"], 0)
-        paperless = st.selectbox("Paperless Billing", ["yes","no"], 0)
+        streaming_tv = st.selectbox("Streaming TV", ["yes","no"], 1)
+        streaming_movies = st.selectbox("Streaming Movies", ["yes","no"], 1)
     with c3:
-        payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
-        phone_service = st.selectbox("Phone Service", ["yes","no"], 0)
-        online_security = st.selectbox("Online Security", ["yes","no"], 1)
+        online_backup = st.selectbox("Online Backup", ["yes","no"], 1)
+else:
+    device_protection = "no internet service"
+    tech_support = "no internet service"
+    streaming_tv = "no internet service"
+    streaming_movies = "no internet service"
+    online_backup = "no internet service"
 
-    # --- Conditional visibility ---
-    if phone_service == "yes":
-        multiple_lines = st.selectbox("Multiple Lines", ["no", "yes"], 0)
-    else:
-        multiple_lines = "no phone service"
+with st.expander("👥 Additional Info"):
+    partner = st.selectbox("Partner", ["yes","no"], 1)
+    dependents = st.selectbox("Dependents", ["yes","no"], 1)
+    senior = st.selectbox("Senior Citizen", [0, 1], 0)
 
-    if internet != "no":
-        with st.expander("📂 Internet & Streaming Options"):
-            device_protection = st.selectbox("Device Protection", ["yes", "no"], 1)
-            tech_support = st.selectbox("Tech Support", ["yes", "no"], 1)
-            streaming_tv = st.selectbox("Streaming TV", ["yes", "no"], 1)
-            streaming_movies = st.selectbox("Streaming Movies", ["yes", "no"], 1)
-    else:
-        device_protection = "no internet service"
-        tech_support = "no internet service"
-        streaming_tv = "no internet service"
-        streaming_movies = "no internet service"
-
-    # --- Additional Info ---
-    with st.expander("👥 Additional Customer Details"):
-        partner = st.selectbox("Partner", ["yes","no"], 1)
-        dependents = st.selectbox("Dependents", ["yes","no"], 1)
-        senior = st.selectbox("Senior Citizen", [0, 1], 0)
-
-    review_text = st.text_area("📝 Customer Review (optional)")
-    submitted = st.form_submit_button("🔮 Predict Churn")
+review_text = st.text_area("📝 Customer Review (optional)")
+predict_btn = st.button("🔮 Predict Churn")
 
 # --------------------- Prediction ---------------------
-if submitted:
+if predict_btn:
     sentiment = simple_sentiment_score(review_text)
     feedback_len = len(review_text.split()) if review_text else 0
 
@@ -170,6 +176,7 @@ if submitted:
         "PhoneService": phone_service,
         "MultipleLines": multiple_lines,
         "OnlineSecurity": online_security,
+        "OnlineBackup": online_backup,
         "TechSupport": tech_support,
         "DeviceProtection": device_protection,
         "StreamingTV": streaming_tv,
