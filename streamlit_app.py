@@ -2,7 +2,7 @@
 Telco Customer Churn Prediction Streamlit App
 - Clean & Professional UI
 - Dynamic inputs (hide multiple lines when no phone service)
-- Hide internet-related services when no internet service
+- Real-time field hiding for internet-related services
 - Uses pretrained NLP model for sentiment analysis
 - Uses trained Random Forest model and scaler from /artifacts
 """
@@ -146,41 +146,67 @@ def preprocess_input(df_input: pd.DataFrame, feat_cols=None, scaler=None):
 # --------------------- Input Form ---------------------
 st.header("🧾 Customer Input")
 
+# Initialize session state for form values if not exists
+if 'internet_service' not in st.session_state:
+    st.session_state.internet_service = "dsl"
+if 'phone_service' not in st.session_state:
+    st.session_state.phone_service = "yes"
+
 with st.form("customer_input"):
     c1, c2, c3 = st.columns(3)
+    
     with c1:
         tenure = st.number_input("Tenure (months)", 0, 100, 24)
         monthly = st.number_input("Monthly Charges", 0.0, 1000.0, 75.0)
         total = st.number_input("Total Charges", 0.0, 10000.0, 1800.0)
+    
     with c2:
-        internet = st.selectbox("Internet Service", ["fiber optic","dsl","no"], 1)
-        contract = st.selectbox("Contract", ["month-to-month","one year","two year"], 0)
-        paperless = st.selectbox("Paperless Billing", ["yes","no"], 0)
+        # Use session state to maintain values and trigger re-runs
+        internet = st.selectbox(
+            "Internet Service", 
+            ["fiber optic", "dsl", "no"], 
+            index=1,
+            key="internet_service"
+        )
+        contract = st.selectbox("Contract", ["month-to-month", "one year", "two year"], 0)
+        paperless = st.selectbox("Paperless Billing", ["yes", "no"], 0)
+    
     with c3:
-        payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
-        phone_service = st.selectbox("Phone Service", ["yes","no"], 0)
+        payment = st.selectbox(
+            "Payment Method", 
+            ["electronic check", "mailed check", "bank transfer (automatic)", "credit card (automatic)"], 
+            0
+        )
+        phone_service = st.selectbox(
+            "Phone Service", 
+            ["yes", "no"], 
+            index=0,
+            key="phone_service"
+        )
         
         # Show Online Security only if internet service is not "no"
-        if internet != "no":
-            online_security = st.selectbox("Online Security", ["yes","no"], 1)
+        if st.session_state.internet_service != "no":
+            online_security = st.selectbox("Online Security", ["yes", "no"], 1)
         else:
             online_security = "no internet service"
+            st.info("No internet service selected")
 
-    # --- Conditional: Hide MultipleLines if no phone service ---
-    if phone_service == "yes":
-        multiple_lines = st.selectbox("Multiple Lines", ["no","yes"], 0)
+    # --- Conditional: Show MultipleLines only if phone service is "yes" ---
+    if st.session_state.phone_service == "yes":
+        multiple_lines = st.selectbox("Multiple Lines", ["no", "yes"], 0)
     else:
         multiple_lines = "no phone service"
+        st.info("No phone service selected")
 
     # --- Optional Fields in Expander ---
     with st.expander("📂 Enter Additional Info (optional)"):
         # Only show internet-related services if customer has internet
-        if internet != "no":
-            device_protection = st.selectbox("Device Protection", ["yes","no"], 1)
-            streaming_tv = st.selectbox("Streaming TV", ["yes","no"], 1)
-            streaming_movies = st.selectbox("Streaming Movies", ["yes","no"], 1)
-            tech_support = st.selectbox("Tech Support", ["yes","no"], 1)
-            online_backup = st.selectbox("Online Backup", ["yes","no"], 1)
+        if st.session_state.internet_service != "no":
+            device_protection = st.selectbox("Device Protection", ["yes", "no"], 1)
+            streaming_tv = st.selectbox("Streaming TV", ["yes", "no"], 1)
+            streaming_movies = st.selectbox("Streaming Movies", ["yes", "no"], 1)
+            tech_support = st.selectbox("Tech Support", ["yes", "no"], 1)
+            online_backup = st.selectbox("Online Backup", ["yes", "no"], 1)
         else:
             # Set default values for internet-related services when no internet
             device_protection = "no internet service"
@@ -188,10 +214,10 @@ with st.form("customer_input"):
             streaming_movies = "no internet service"
             tech_support = "no internet service"
             online_backup = "no internet service"
-            st.info("ℹ️ Internet-related services hidden because Internet Service is 'no'")
+            st.info("ℹ️ Internet-related services are not available because Internet Service is 'no'")
         
-        partner = st.selectbox("Partner", ["yes","no"], 1)
-        dependents = st.selectbox("Dependents", ["yes","no"], 1)
+        partner = st.selectbox("Partner", ["yes", "no"], 1)
+        dependents = st.selectbox("Dependents", ["yes", "no"], 1)
         senior = st.selectbox("Senior Citizen", [0, 1], 0)
         gender = st.selectbox("Gender", ["male", "female"], 0)
 
@@ -216,11 +242,11 @@ if submitted:
         "PhoneService": phone_service,
         "MultipleLines": multiple_lines,
         "OnlineSecurity": online_security,
-        "OnlineBackup": online_backup if internet != "no" else "no internet service",
-        "TechSupport": tech_support if internet != "no" else "no internet service",
-        "DeviceProtection": device_protection if internet != "no" else "no internet service",
-        "StreamingTV": streaming_tv if internet != "no" else "no internet service",
-        "StreamingMovies": streaming_movies if internet != "no" else "no internet service",
+        "OnlineBackup": online_backup if st.session_state.internet_service != "no" else "no internet service",
+        "TechSupport": tech_support if st.session_state.internet_service != "no" else "no internet service",
+        "DeviceProtection": device_protection if st.session_state.internet_service != "no" else "no internet service",
+        "StreamingTV": streaming_tv if st.session_state.internet_service != "no" else "no internet service",
+        "StreamingMovies": streaming_movies if st.session_state.internet_service != "no" else "no internet service",
         "PaymentMethod": payment,
         "feedback_length": feedback_len,
         "sentiment": sentiment,
@@ -289,7 +315,7 @@ if submitted:
         tips.append("🟡 **New Customer**: Consider onboarding incentives and check-in calls.")
     if monthly > 80: 
         tips.append("🟠 **High Monthly Charge**: Suggest loyalty discount or value-add services.")
-    if internet != "no" and online_security == "no": 
+    if st.session_state.internet_service != "no" and online_security == "no": 
         tips.append("🟠 **Security Opportunity**: Offer Online Security package.")
     if contract == "month-to-month": 
         tips.append("🟡 **Flexible Contract**: Consider offering contract incentives.")
@@ -321,7 +347,6 @@ if submitted:
             st.pyplot(fig)
         except Exception as e:
             st.warning(f"Could not display feature importance: {e}")
-
 # -------------------- EDA Section ---------------------
 st.markdown("---")
 st.header("📊 Exploratory Data Analysis & Insights")
