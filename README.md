@@ -27,6 +27,7 @@ The project combines **structured data analysis**, **customer feedback sentiment
 ---
 
 ### 📂 Project Structure
+
 telco-customer-churn-analysis-and-prediction-with-ml-and-nlp/
 │
 ├── artifacts/                 # Trained model & preprocessing
@@ -39,7 +40,7 @@ telco-customer-churn-analysis-and-prediction-with-ml-and-nlp/
 ├── README.md                 # Project documentation
 │
 └── (Notebooks & raw data in separate analysis environment)
-```
+
 
 ---
 
