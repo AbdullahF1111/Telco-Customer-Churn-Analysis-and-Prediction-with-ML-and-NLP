@@ -333,7 +333,7 @@ rec_col1, rec_col2 = st.columns(2)
 
 with rec_col1:
     st.markdown("""
-    **🎫 Contract Optimization**
+    #### Contract Optimization
     - Convert month-to-month to 1-year contracts
     - **Expected Impact:** 20% churn reduction
     - **Target:** 55% of customer base
