@@ -2,7 +2,8 @@
 Telco Customer Churn Prediction Streamlit App
 - Clean & Professional UI
 - Dynamic inputs (hide multiple lines when no phone service)
-- Optional "Additional Info" expander for extra fields
+- Hide internet-related services when no internet service
+- Uses pretrained NLP model for sentiment analysis
 - Uses trained Random Forest model and scaler from /artifacts
 """
 
@@ -15,6 +16,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
+from transformers import pipeline
 
 # --------------------- App Setup ---------------------
 st.set_page_config(page_title="Telco Churn Predictor", layout="wide", page_icon="📊")
@@ -31,13 +33,45 @@ MODEL_PATH = ARTIFACTS_DIR / "model.pkl"
 SCALER_PATH = ARTIFACTS_DIR / "scaler.pkl"
 FEATURES_PATH = ARTIFACTS_DIR / "feature_columns.json"
 
-# --------------------- Sentiment Converter ---------------------
-POS_WORDS = {"good","great","excellent","satisfied","happy","love","recommend","reliable","best","positive","pleased","fast"}
-NEG_WORDS = {"bad","terrible","awful","unhappy","angry","hate","disappointed","slow","worst","problem","issue","complain","expensive"}
+# --------------------- Pretrained Sentiment Analysis ---------------------
+@st.cache_resource
+def load_sentiment_model():
+    try:
+        # Using a lightweight pretrained model for sentiment analysis
+        sentiment_pipeline = pipeline("sentiment-analysis", 
+                                    model="distilbert-base-uncased-finetuned-sst-2-english",
+                                    return_all_scores=True)
+        st.success("✅ Loaded pretrained sentiment model successfully.")
+        return sentiment_pipeline
+    except Exception as e:
+        st.warning(f"⚠️ Could not load pretrained model: {e}. Using fallback method.")
+        return None
 
-def simple_sentiment_score(text: str) -> float:
+sentiment_model = load_sentiment_model()
+
+def analyze_sentiment(text: str) -> float:
     if not text or not isinstance(text, str) or len(text.strip()) == 0:
         return 0.0
+    
+    if sentiment_model is not None:
+        try:
+            results = sentiment_model(text[:512])  # Truncate to model limit
+            if results and len(results) > 0:
+                scores = results[0]
+                for score in scores:
+                    if score['label'] == 'POSITIVE':
+                        return float(score['score'])
+                # If no positive score found, return negative sentiment
+                for score in scores:
+                    if score['label'] == 'NEGATIVE':
+                        return -float(score['score'])
+        except Exception as e:
+            st.warning(f"Sentiment analysis failed: {e}. Using fallback.")
+    
+    # Fallback simple sentiment analysis
+    POS_WORDS = {"good","great","excellent","satisfied","happy","love","recommend","reliable","best","positive","pleased","fast","awesome","amazing","perfect"}
+    NEG_WORDS = {"bad","terrible","awful","unhappy","angry","hate","disappointed","slow","worst","problem","issue","complain","expensive","horrible","useless"}
+    
     txt = text.lower()
     words = [w.strip(".,!?()[]\"'") for w in txt.split()]
     pos = sum(1 for w in words if w in POS_WORDS)
@@ -125,30 +159,48 @@ with st.form("customer_input"):
     with c3:
         payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
         phone_service = st.selectbox("Phone Service", ["yes","no"], 0)
-        online_security = st.selectbox("Online Security", ["yes","no"], 1)
+        
+        # Show Online Security only if internet service is not "no"
+        if internet != "no":
+            online_security = st.selectbox("Online Security", ["yes","no"], 1)
+        else:
+            online_security = "no internet service"
 
     # --- Conditional: Hide MultipleLines if no phone service ---
     if phone_service == "yes":
-        multiple_lines = st.selectbox("Multiple Lines", ["no","yes","no phone service"], 0)
+        multiple_lines = st.selectbox("Multiple Lines", ["no","yes"], 0)
     else:
         multiple_lines = "no phone service"
 
     # --- Optional Fields in Expander ---
     with st.expander("📂 Enter Additional Info (optional)"):
-        device_protection = st.selectbox("Device Protection", ["yes","no","no internet service"], 1)
-        streaming_tv = st.selectbox("Streaming TV", ["yes","no","no internet service"], 1)
-        streaming_movies = st.selectbox("Streaming Movies", ["yes","no","no internet service"], 1)
-        tech_support = st.selectbox("Tech Support", ["yes","no","no internet service"], 1)
+        # Only show internet-related services if customer has internet
+        if internet != "no":
+            device_protection = st.selectbox("Device Protection", ["yes","no"], 1)
+            streaming_tv = st.selectbox("Streaming TV", ["yes","no"], 1)
+            streaming_movies = st.selectbox("Streaming Movies", ["yes","no"], 1)
+            tech_support = st.selectbox("Tech Support", ["yes","no"], 1)
+            online_backup = st.selectbox("Online Backup", ["yes","no"], 1)
+        else:
+            # Set default values for internet-related services when no internet
+            device_protection = "no internet service"
+            streaming_tv = "no internet service"
+            streaming_movies = "no internet service"
+            tech_support = "no internet service"
+            online_backup = "no internet service"
+            st.info("ℹ️ Internet-related services hidden because Internet Service is 'no'")
+        
         partner = st.selectbox("Partner", ["yes","no"], 1)
         dependents = st.selectbox("Dependents", ["yes","no"], 1)
         senior = st.selectbox("Senior Citizen", [0, 1], 0)
+        gender = st.selectbox("Gender", ["male", "female"], 0)
 
     review_text = st.text_area("📝 Customer Review (optional)")
     submitted = st.form_submit_button("🔮 Predict Churn")
 
 # --------------------- Prediction ---------------------
 if submitted:
-    sentiment = simple_sentiment_score(review_text)
+    sentiment = analyze_sentiment(review_text)
     feedback_len = len(review_text.split()) if review_text else 0
 
     row = {
@@ -164,14 +216,15 @@ if submitted:
         "PhoneService": phone_service,
         "MultipleLines": multiple_lines,
         "OnlineSecurity": online_security,
-        "TechSupport": tech_support,
-        "DeviceProtection": device_protection,
-        "StreamingTV": streaming_tv,
-        "StreamingMovies": streaming_movies,
+        "OnlineBackup": online_backup if internet != "no" else "no internet service",
+        "TechSupport": tech_support if internet != "no" else "no internet service",
+        "DeviceProtection": device_protection if internet != "no" else "no internet service",
+        "StreamingTV": streaming_tv if internet != "no" else "no internet service",
+        "StreamingMovies": streaming_movies if internet != "no" else "no internet service",
         "PaymentMethod": payment,
         "feedback_length": feedback_len,
         "sentiment": sentiment,
-        "gender": "male"
+        "gender": gender
     }
 
     df_input = pd.DataFrame([row])
@@ -186,19 +239,88 @@ if submitted:
         st.stop()
 
     st.subheader("🧠 Prediction Result")
-    st.metric("Churn Prediction (1 = Yes)", pred)
-    st.progress(proba)
-    st.write(f"**Churn Probability:** {proba:.2%}")
+    
+    # Visual indicators for churn probability
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if pred == 1:
+            st.error(f"🚨 HIGH CHURN RISK: {proba:.2%}")
+        else:
+            st.success(f"✅ LOW CHURN RISK: {proba:.2%}")
+        
+        # Progress bar with color coding
+        if proba < 0.3:
+            bar_color = "green"
+        elif proba < 0.7:
+            bar_color = "orange"
+        else:
+            bar_color = "red"
+        
+        st.progress(proba)
+    
+    # Sentiment analysis results
+    if review_text:
+        st.markdown("#### 📝 Review Sentiment Analysis")
+        sentiment_col1, sentiment_col2 = st.columns(2)
+        with sentiment_col1:
+            if sentiment > 0:
+                st.success(f"Positive Sentiment: {sentiment:.3f}")
+            elif sentiment < 0:
+                st.error(f"Negative Sentiment: {abs(sentiment):.3f}")
+            else:
+                st.info("Neutral Sentiment")
+        
+        with sentiment_col2:
+            st.metric("Review Length (words)", feedback_len)
 
     st.markdown("#### 📊 Recommended Actions")
     tips = []
-    if tenure < 12: tips.append("🟡 New customer — offer onboarding incentives.")
-    if monthly > 80: tips.append("🔴 High monthly charge — suggest loyalty discount.")
-    if online_security == "no": tips.append("🟠 Offer Online Security package.")
-    if sentiment < 0: tips.append("🔴 Negative sentiment — follow up with support.")
-    if not tips: tips.append("🟢 Customer appears stable — continue monitoring.")
+    
+    # Churn probability based recommendations
+    if proba > 0.7:
+        tips.append("🔴 **High Priority**: Immediate retention actions needed!")
+    elif proba > 0.5:
+        tips.append("🟠 **Medium Priority**: Proactive engagement recommended.")
+    else:
+        tips.append("🟢 **Low Priority**: Continue standard monitoring.")
+    
+    # Feature-based recommendations
+    if tenure < 12: 
+        tips.append("🟡 **New Customer**: Consider onboarding incentives and check-in calls.")
+    if monthly > 80: 
+        tips.append("🟠 **High Monthly Charge**: Suggest loyalty discount or value-add services.")
+    if internet != "no" and online_security == "no": 
+        tips.append("🟠 **Security Opportunity**: Offer Online Security package.")
+    if contract == "month-to-month": 
+        tips.append("🟡 **Flexible Contract**: Consider offering contract incentives.")
+    if sentiment < -0.3: 
+        tips.append("🔴 **Negative Feedback**: Immediate follow-up required from customer support.")
+    elif sentiment > 0.3:
+        tips.append("🟢 **Positive Feedback**: Opportunity for testimonial or referral program.")
+    
+    if not tips: 
+        tips.append("🟢 Customer appears stable — continue excellent service delivery.")
+    
     for t in tips:
         st.write("- " + t)
+    
+    # Feature importance visualization (if available)
+    if hasattr(model, 'feature_importances_'):
+        st.markdown("#### 🔍 Top Factors Influencing Prediction")
+        try:
+            # Get top 10 features
+            feature_importance = pd.DataFrame({
+                'feature': model_feat_cols,
+                'importance': model.feature_importances_
+            }).sort_values('importance', ascending=False).head(10)
+            
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.barplot(data=feature_importance, x='importance', y='feature', ax=ax)
+            ax.set_title('Top 10 Feature Importances')
+            ax.set_xlabel('Importance')
+            st.pyplot(fig)
+        except Exception as e:
+            st.warning(f"Could not display feature importance: {e}")
 
 # -------------------- EDA Section ---------------------
 st.markdown("---")
