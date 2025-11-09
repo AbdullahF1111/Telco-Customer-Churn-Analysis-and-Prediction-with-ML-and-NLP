@@ -338,7 +338,7 @@ with rec_col1:
     - **Expected Impact:** 20% churn reduction
     - **Target:** 55% of customer base
     
-    **💳 Payment Method Enhancement** 
+    #### Payment Method Enhancement 
     - Auto-pay incentives & digital wallet integration
     - **Expected Impact:** 10-15% churn reduction
     - **Target:** Electronic check users (33% of churn)
@@ -346,12 +346,12 @@ with rec_col1:
 
 with rec_col2:
     st.markdown("""
-    **🛡️ Service Bundle Strategy**
+    #### Service Bundle Strategy
     - Security & support package promotions
     - **Expected Impact:** 8-12% churn reduction  
     - **Target:** Fiber optic & high-risk segments
     
-    **📝 Proactive Monitoring**
+    #### Proactive Monitoring
     - NLP sentiment analysis + early intervention
     - **Expected Impact:** 5-8% churn reduction
     - **Target:** Negative feedback customers
