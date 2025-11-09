@@ -1,4 +1,3 @@
-Here's the updated README file that accurately reflects your actual model and project structure:
 
 ```markdown
 # 📞 Telco Customer Churn Prediction with ML & NLP
