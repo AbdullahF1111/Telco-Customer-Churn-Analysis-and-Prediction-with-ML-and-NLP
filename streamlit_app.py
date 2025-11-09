@@ -29,19 +29,30 @@ SCALER_PATH = ARTIFACTS_DIR / "scaler.pkl"
 FEATURES_PATH = ARTIFACTS_DIR / "feature_columns.json"
 
 # --------------------- Sentiment Converter ---------------------
-POS_WORDS = {"good","great","excellent","satisfied","happy","love","recommend","reliable","best","positive","pleased","fast"}
-NEG_WORDS = {"bad","terrible","awful","unhappy","angry","hate","disappointed","slow","worst","problem","issue","complain","expensive"}
+from transformers import pipeline
 
-def simple_sentiment_score(text: str) -> float:
+@st.cache_resource
+def load_sentiment_model():
+    """Load HuggingFace sentiment analysis model (cached)."""
+    return pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
+
+sentiment_model = load_sentiment_model()
+
+def transformer_sentiment_score(text: str) -> float:
+    """
+    Returns sentiment score in range [-1, 1] using transformer model.
+    Positive sentiment -> +1, Negative -> -1
+    """
     if not text or not isinstance(text, str) or len(text.strip()) == 0:
         return 0.0
-    txt = text.lower()
-    words = [w.strip(".,!?()[]\"'") for w in txt.split()]
-    pos = sum(1 for w in words if w in POS_WORDS)
-    neg = sum(1 for w in words if w in NEG_WORDS)
-    if pos == 0 and neg == 0:
+    try:
+        result = sentiment_model(text[:512])[0]  # limit input to 512 tokens
+        label = result["label"]
+        score = result["score"]
+        return score if label == "POSITIVE" else -score
+    except Exception:
         return 0.0
-    return float(np.clip((pos - neg) / max(1, (pos + neg)), -1, 1))
+
 
 # --------------------- Load Artifacts ---------------------
 @st.cache_resource
@@ -160,7 +171,7 @@ predict_btn = st.button("🔮 Predict Churn")
 
 # --------------------- Prediction ---------------------
 if predict_btn:
-    sentiment = simple_sentiment_score(review_text)
+    sentiment = transformer_sentiment_score(review_text)
     feedback_len = len(review_text.split()) if review_text else 0
 
     row = {
