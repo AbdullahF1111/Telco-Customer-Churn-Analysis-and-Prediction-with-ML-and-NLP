@@ -7,7 +7,7 @@ import joblib
 
 # --------------------- App Setup ---------------------
 st.set_page_config(page_title="Telco Churn Predictor", layout="wide", page_icon="📊")
-st.title("📈 Telco Customer Churn Prediction App")
+st.title("📞 Telco Customer Churn Prediction App")
 
 
 st.markdown(
