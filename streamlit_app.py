@@ -123,7 +123,8 @@ col1, col2, col3 = st.columns(3)
 with col1:
     tenure = st.number_input("Tenure (months)", 0, 100, 24)
     monthly = st.number_input("Monthly Charges", 0.0, 1000.0, 75.0)
-    total = st.number_input("Total Charges", 0.0, 10000.0, 1800.0)
+    total = st.number_input("Total Charges", 0.0, 10000.0, 1800.0,
+                            help="💡 Total amount charged to date. May differ from tenure × monthly charges due to discounts, promotions, taxes, or one-time fees.")
 with col2:
     internet = st.selectbox("Internet Service", ["fiber optic", "dsl", "no"], 2)
     contract = st.selectbox("Contract", ["month-to-month","one year","two year"], 0)
