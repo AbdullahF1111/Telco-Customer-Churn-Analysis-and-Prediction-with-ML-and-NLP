@@ -58,7 +58,7 @@ telco-customer-churn-analysis-and-prediction-with-ml-and-nlp/
 
 ---
 
-### 🧮 Model Performance
+### Model Performance
 
 **Random Forest** achieved the best balanced performance:
 
@@ -134,7 +134,7 @@ streamlit run streamlit_app.py
 
 ---
 
-### 👨‍💻 About the Author
+### About the Author
 
 **Abdullah Fahlo**  
 🎓 B.Sc. in Information Engineering — University of Aleppo (2025)  
