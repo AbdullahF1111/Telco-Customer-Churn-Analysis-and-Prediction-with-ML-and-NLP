@@ -97,7 +97,7 @@ telco-customer-churn-analysis-and-prediction-with-ml-and-nlp/
 
 The app provides:
 -  **Interactive customer input form** with conditional fields
--  **Real-time churn predictions** with probability scores
+-  **Real-time churn predictions** with ML & NLP
 -  **Automatic sentiment analysis** of customer reviews
 -  **Actionable recommendations** based on risk factors
 -  **EDA insights** and model performance metrics
