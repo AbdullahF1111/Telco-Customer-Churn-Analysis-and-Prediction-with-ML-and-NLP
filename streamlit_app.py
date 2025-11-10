@@ -128,12 +128,12 @@ with col1:
     monthly = st.number_input("Monthly Charges", 0.0, 1000.0, 75.0)
     total = st.number_input("Total Charges", 0.0, 10000.0, 1800.0)
 with col2:
-    internet = st.selectbox("Internet Service", ["fiber optic", "dsl", "no"], 1)
+    internet = st.selectbox("Internet Service", ["fiber optic", "dsl", "no"], 2)
     contract = st.selectbox("Contract", ["month-to-month","one year","two year"], 0)
     paperless = st.selectbox("Paperless Billing", ["yes","no"], 0)
 with col3:
     payment = st.selectbox("Payment Method", ["electronic check","mailed check","bank transfer (automatic)","credit card (automatic)"], 0)
-    phone_service = st.selectbox("Phone Service", ["yes","no"], 0)
+    phone_service = st.selectbox("Phone Service", ["yes","no"], 1)
     online_security = st.selectbox("Online Security", ["yes","no"], 1)
 
 # --- Conditional: Multiple Lines only if phone_service = yes ---
