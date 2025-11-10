@@ -399,8 +399,6 @@ st.markdown("""
 | Metric | Current | Expected Improvement | Impact |
 |--------|---------|---------------------|---------|
 | **Churn Rate** | 26.5% | 16.5-18.5% | **35-45% reduction** |
-| **Customers Saved** | - | 520-860 annually | **Revenue protection** |
-| **Annual Revenue** | $6.2M at risk | $2.1-2.7M protected | **34-44% improvement** |
 | **Implementation ROI** | - | 2.4x (Y1), 4.8x (Y2) | **Strong business case** |
 
 ---
