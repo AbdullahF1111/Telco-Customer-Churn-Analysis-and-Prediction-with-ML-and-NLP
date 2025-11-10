@@ -1,10 +1,3 @@
-"""
-Telco Customer Churn Prediction Streamlit App
-- Fully dynamic UI (instant field hiding)
-- Uses your trained Random Forest model from /artifacts
-- Optional expanders for clarity and clean design
-"""
-
 import json
 from pathlib import Path
 import numpy as np
@@ -16,9 +9,21 @@ import joblib
 st.set_page_config(page_title="Telco Churn Predictor", layout="wide", page_icon="📊")
 st.title("📈 Telco Customer Churn Prediction App")
 
+
 st.markdown(
     """
-Enter **customer details** below — irrelevant fields will hide automatically  
+    ### 🔗 [Full Project on GitHub](https://github.com/AbdullahF1111/Telco-Customer-Churn-Analysis-and-Prediction-with-ML-and-NLP)
+    
+    A comprehensive machine learning solution for predicting customer churn in the telecom industry.
+    
+    Enter key customer details below — optional fields can be expanded.  
+    You can also add a customer review for automatic sentiment scoring.
+    """
+)
+
+st.markdown(
+    """
+Enter **Additional Info** below — irrelevant fields will hide automatically  
 when you choose “No” for Internet Service or Phone Service.
 """
 )
