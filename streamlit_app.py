@@ -403,10 +403,6 @@ st.markdown("""
 | **Annual Revenue** | $6.2M at risk | $2.1-2.7M protected | **34-44% improvement** |
 | **Implementation ROI** | - | 2.4x (Y1), 4.8x (Y2) | **Strong business case** |
 
-# Alternative: If you want to use images, they must be in your repository
-# st.subheader("📊 Visual Analysis")
-# st.info("For full visual analysis including charts and graphs, please refer to the project notebook in the repository.")
-
 st.markdown("""
 *Analysis based on 7,043 customer records using Random Forest classification with 94.6% AUC performance.*
 """)
