@@ -405,16 +405,6 @@ st.markdown("""
 
 ---
 
-### 🚀 Immediate Next Steps
-
-1. **Launch contract conversion pilot** (Month 1-2)
-2. **Implement payment optimization** (Month 1-3) 
-3. **Deploy sentiment monitoring** (Month 2-4)
-4. **Scale successful initiatives** (Month 5-12)
-
-**🎯 Recommendation:** Proceed with phased retention program targeting highest-impact segments first.
-""")
-
 # Alternative: If you want to use images, they must be in your repository
 # st.subheader("📊 Visual Analysis")
 # st.info("For full visual analysis including charts and graphs, please refer to the project notebook in the repository.")
