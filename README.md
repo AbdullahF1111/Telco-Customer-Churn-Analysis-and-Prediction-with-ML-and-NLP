@@ -103,7 +103,7 @@ The app provides:
 -  **Actionable recommendations** based on risk factors
 -  **EDA insights** and model performance metrics
 
-<img width="1920" height="1080" alt="Screenshot (17)" src="https://github.com/user-attachments/assets/2603cebf-f052-4061-8ee7-03e335d813c3" />
+<img width="1920" height="881" alt="Screenshot_Model" src="https://github.com/user-attachments/assets/5779dcd2-8b7b-43c0-b62e-c5552a90b5d2" />
 
 
 **Run locally:**
