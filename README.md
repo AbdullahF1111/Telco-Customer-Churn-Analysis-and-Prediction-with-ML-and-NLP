@@ -2,7 +2,7 @@
 
 **A full-stack churn prediction solution combining EDA, ML, and NLP — deployed via Streamlit for real-time business use.**
 
-### 🎯 Project Overview
+### Project Overview
 An **end-to-end data science project** to predict **customer churn** in a telecom company using **Machine Learning, NLP sentiment analysis, and Streamlit** for interactive predictions.  
 The project combines **structured data analysis**, **customer feedback sentiment scoring**, and **business insights** to help reduce churn rates and improve retention strategies.
 
