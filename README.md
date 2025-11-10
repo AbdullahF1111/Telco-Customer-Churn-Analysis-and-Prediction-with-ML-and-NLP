@@ -26,8 +26,6 @@ The project combines **structured data analysis**, **customer feedback sentiment
 | **Version Control** | GitHub |
 | **Environment** | Python 3.8+ |
 
-[Project Notebook in Copilot](https://colab.research.google.com/drive/1BGobmvsQf0VpkjsObjqtUsbSFb1t-OLB?usp=sharing)
-
 ---
 
 ### 📂 Project Structure
