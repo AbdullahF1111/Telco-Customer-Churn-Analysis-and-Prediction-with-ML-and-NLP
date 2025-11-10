@@ -1,5 +1,7 @@
 # 📞 Telco Customer Churn Prediction with ML & NLP
 
+> **A full-stack churn prediction solution combining EDA, ML, and NLP — deployed via Streamlit for real-time business use.**
+
 ### 🎯 Project Overview
 An **end-to-end data science project** to predict **customer churn** in a telecom company using **Machine Learning, NLP sentiment analysis, and Streamlit** for interactive predictions.  
 The project combines **structured data analysis**, **customer feedback sentiment scoring**, and **business insights** to help reduce churn rates and improve retention strategies.
@@ -8,7 +10,7 @@ The project combines **structured data analysis**, **customer feedback sentiment
 
 ### 🚀 Key Objectives
 - Predict whether a telecom customer will **churn or stay** using ensemble methods
-- Extract **customer sentiment** from written feedback using rule-based NLP
+- Extract customer sentiment from written feedback using Transformer-based NLP (DistilBERT) for contextual understanding.
 - Provide **data-driven recommendations** to reduce churn by 35-45%
 - Deploy an interactive **Streamlit app** for real-time predictions
 
@@ -19,7 +21,7 @@ The project combines **structured data analysis**, **customer feedback sentiment
 |-----------|-------------------|
 | **Data Analysis** | Pandas, NumPy, Seaborn, Matplotlib |
 | **Machine Learning** | Scikit-learn, Random Forest, XGBoost, Logistic Regression |
-| **NLP / Sentiment Analysis** | Custom lexicon-based sentiment scoring |
+| **NLP / Sentiment Analysis** | DistilBERT Transformer (Hugging Face), NLP Pipeline |
 | **Model Deployment** | Streamlit, Joblib |
 | **Version Control** | GitHub |
 | **Environment** | Python 3.8+ |
@@ -90,7 +92,7 @@ telco-customer-churn-analysis-and-prediction-with-ml-and-nlp/
 
 ### 💬 Streamlit App Features
 
-**Live Demo:** [https://telco-customer-churn-analysis-and-prediction-with-ml-and-nlp-w.streamlit.app/]
+**Live Demo:** [https://telco-customer-churn-analysis-and-prediction-with-ml-and-nlp-w.streamlit.app/#customer-details]
 
 The app provides:
 - 📊 **Interactive customer input form** with conditional fields
@@ -142,7 +144,6 @@ streamlit run streamlit_app.py
 ### 🌍 Future Enhancements
 
 - **Real-time CRM integration** for automated predictions
-- **Advanced NLP** using transformer models for deeper sentiment analysis
 - **SHAP explainability** for feature-level insights
 - **A/B testing framework** for retention offers
 - **Cloud deployment** on AWS/Azure with CI/CD pipeline
@@ -155,7 +156,8 @@ streamlit run streamlit_app.py
 🎓 B.Sc. in Information Engineering — University of Aleppo (2025)  
 💡 Data Analyst | ML & AI Enthusiast | NLP Learner  
 📬 [abdullahfahlo.com@gmail.com](mailto:abdullahfahlo.com@gmail.com)  
-🌍 [LinkedIn Profile](#) | [Portfolio Projects](#)
+🌍 [LinkedIn](https://linkedin.com/in/abdullahfahlo)  
+💼 [Portfolio Projects]([https://github.com/abdullahfahlo](https://github.com/AbdullahF1111))
 
 ---
 
@@ -165,7 +167,7 @@ This project is licensed under the **MIT License** — you're free to use and ad
 
 ---
 
-*Last updated: November 2024*
+*Last updated: November 2025*
 
 
 ## Key Updates Made:
