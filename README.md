@@ -1,6 +1,6 @@
 # 📞 Telco Customer Churn Prediction with ML & NLP
 
-> **A full-stack churn prediction solution combining EDA, ML, and NLP — deployed via Streamlit for real-time business use.**
+**A full-stack churn prediction solution combining EDA, ML, and NLP — deployed via Streamlit for real-time business use.**
 
 ### 🎯 Project Overview
 An **end-to-end data science project** to predict **customer churn** in a telecom company using **Machine Learning, NLP sentiment analysis, and Streamlit** for interactive predictions.  
@@ -8,7 +8,7 @@ The project combines **structured data analysis**, **customer feedback sentiment
 
 ---
 
-### 🚀 Key Objectives
+### Key Objectives
 - Predict whether a telecom customer will **churn or stay** using ensemble methods
 - Extract customer sentiment from written feedback using Transformer-based NLP (DistilBERT) for contextual understanding.
 - Provide **data-driven recommendations** to reduce churn by 35-45%
@@ -16,7 +16,7 @@ The project combines **structured data analysis**, **customer feedback sentiment
 
 ---
 
-### 🧩 Tech Stack
+### Tech Stack
 | Category | Tools & Libraries |
 |-----------|-------------------|
 | **Data Analysis** | Pandas, NumPy, Seaborn, Matplotlib |
@@ -95,11 +95,11 @@ telco-customer-churn-analysis-and-prediction-with-ml-and-nlp/
 **Live Demo:** [https://telco-customer-churn-analysis-and-prediction-with-ml-and-nlp-w.streamlit.app/#customer-details]
 
 The app provides:
-- 📊 **Interactive customer input form** with conditional fields
-- 🎯 **Real-time churn predictions** with probability scores
-- 📝 **Automatic sentiment analysis** of customer reviews
-- 💡 **Actionable recommendations** based on risk factors
-- 📈 **EDA insights** and model performance metrics
+-  **Interactive customer input form** with conditional fields
+-  **Real-time churn predictions** with probability scores
+-  **Automatic sentiment analysis** of customer reviews
+-  **Actionable recommendations** based on risk factors
+-  **EDA insights** and model performance metrics
 
 **Run locally:**
 ```bash
@@ -125,22 +125,6 @@ streamlit run streamlit_app.py
 
 ---
 
-### 🚀 Implementation Roadmap
-
-**Phase 1 (Months 1-3):**
-- Contract conversion pilot program
-- Payment optimization system deployment
-
-**Phase 2 (Months 4-6):**
-- Full retention program rollout
-- Sentiment monitoring implementation
-
-**Phase 3 (Months 7-12):**
-- Program optimization and scaling
-- Advanced personalization features
-
----
-
 ### 🌍 Future Enhancements
 
 - **Real-time CRM integration** for automated predictions
@@ -156,7 +140,7 @@ streamlit run streamlit_app.py
 🎓 B.Sc. in Information Engineering — University of Aleppo (2025)  
 💡 Data Analyst | ML & AI Enthusiast | NLP Learner  
 📬 [abdullahfahlo.com@gmail.com](mailto:abdullahfahlo.com@gmail.com)  
-🌍 [LinkedIn](https://linkedin.com/in/abdullahfahlo)  
+🌍 [LinkedIn]((https://www.linkedin.com/in/abdullah-fahlo-77b28a29b))  
 💼 [Portfolio Projects]([https://github.com/abdullahfahlo](https://github.com/AbdullahF1111))
 
 ---
@@ -169,21 +153,7 @@ This project is licensed under the **MIT License** — you're free to use and ad
 
 *Last updated: November 2025*
 
+---
 
-## Key Updates Made:
-
-1. **Accurate Model Information**: Reflects your actual Random Forest model with 0.946 AUC
-2. **Real Feature Importance**: Uses your actual top features (sentiment, tenure, etc.)
-3. **Correct Project Structure**: Shows your actual `artifacts/` folder structure
-4. **Actual Business Metrics**: Includes your calculated 35-45% churn reduction and $2.1-2.7M revenue impact
-5. **Streamlit App Details**: Describes your actual app features and conditional inputs
-6. **Real Performance Numbers**: Your exact model comparison table
-7. **Implementation Timeline**: Based on your phased approach
-
-## To Complete Your Repository:
-
-1. **Add your actual performance charts** to the repository in an `images/` folder
-2. **Update the Streamlit Cloud URL** when you deploy
-3. **Add your contact links** (LinkedIn, portfolio)
-4. **Include a screenshot** of your Streamlit app in action
+[*Dataset Source(Beata Faron)*](https://www.kaggle.com/datasets/beatafaron/telco-customer-churn-realistic-customer-feedback)
 
