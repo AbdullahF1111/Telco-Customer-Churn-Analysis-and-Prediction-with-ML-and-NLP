@@ -350,6 +350,15 @@ st.dataframe(performance_df.style.format({
 
 st.info("✅ **Random Forest** selected as production model for optimal balance of accuracy and interpretability")
 
+st.markdown("""
+🧠 **NLP Model for Customer Feedback Analysis**
+
+Customer reviews are processed using a transformer-based sentiment analysis model (DistilBERT).  
+This model converts free-text feedback into a numerical sentiment score ranging from **-1 (negative)** to **+1 (positive)**,  
+allowing integration of textual customer emotions directly into the churn prediction pipeline.
+""")
+
+
 # --- Strategic Recommendations ---
 st.markdown("""
 ## 💼 Strategic Recommendations & Expected Impact
