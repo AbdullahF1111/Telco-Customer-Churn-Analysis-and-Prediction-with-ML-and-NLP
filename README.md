@@ -125,7 +125,7 @@ streamlit run streamlit_app.py
 
 ---
 
-### 🌍 Future Enhancements
+### Future Enhancements
 
 - **Real-time CRM integration** for automated predictions
 - **SHAP explainability** for feature-level insights
@@ -140,8 +140,8 @@ streamlit run streamlit_app.py
 🎓 B.Sc. in Information Engineering — University of Aleppo (2025)  
 💡 Data Analyst | ML & AI Enthusiast | NLP Learner  
 📬 [abdullahfahlo.com@gmail.com](mailto:abdullahfahlo.com@gmail.com)  
-🌍 [LinkedIn]((https://www.linkedin.com/in/abdullah-fahlo-77b28a29b))  
-💼 [Portfolio Projects]([https://github.com/abdullahfahlo](https://github.com/AbdullahF1111))
+🌍 [LinkedIn](https://www.linkedin.com/in/abdullah-fahlo-77b28a29b)  
+💼 [Portfolio Projects](https://github.com/AbdullahF1111)
 
 ---
 
