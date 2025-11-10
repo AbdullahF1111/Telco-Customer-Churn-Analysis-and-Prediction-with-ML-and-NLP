@@ -407,6 +407,5 @@ st.markdown("""
 
 """)
 st.markdown("""
----
 *Analysis based on 7,043 customer records using Random Forest classification with 94.6% AUC performance.*
 """)
