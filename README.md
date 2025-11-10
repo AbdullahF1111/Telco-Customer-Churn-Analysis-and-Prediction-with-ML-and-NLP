@@ -57,7 +57,9 @@ telco-customer-churn-analysis-and-prediction-with-ml-and-nlp/
 | **High charges + low tenure: 48% churn** | Value perception issue | Loyalty discounts for at-risk customers |
 
 ---
+<img width="1920" height="899" alt="Screenshot_EDA" src="https://github.com/user-attachments/assets/6135969a-1817-4299-a1d4-1fa7a151dc80" />
 
+---
 ### Model Performance
 
 **Random Forest** achieved the best balanced performance:
@@ -100,6 +102,9 @@ The app provides:
 -  **Automatic sentiment analysis** of customer reviews
 -  **Actionable recommendations** based on risk factors
 -  **EDA insights** and model performance metrics
+
+<img width="1920" height="1080" alt="Screenshot (17)" src="https://github.com/user-attachments/assets/2603cebf-f052-4061-8ee7-03e335d813c3" />
+
 
 **Run locally:**
 ```bash
