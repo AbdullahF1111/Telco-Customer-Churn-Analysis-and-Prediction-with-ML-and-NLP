@@ -15,9 +15,7 @@ st.markdown(
     ### 🔗 [Full Project on GitHub](https://github.com/AbdullahF1111/Telco-Customer-Churn-Analysis-and-Prediction-with-ML-and-NLP)
     
     A comprehensive machine learning solution for predicting customer churn in the telecom industry.
-    
-    Enter key customer details below — optional fields can be expanded.  
-    You can also add a customer review for automatic sentiment scoring.
+    You can add a customer review for automatic sentiment scoring.
     """
 )
 
