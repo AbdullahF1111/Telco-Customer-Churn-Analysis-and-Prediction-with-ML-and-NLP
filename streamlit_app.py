@@ -165,7 +165,7 @@ with st.expander("👥 Additional Info"):
     senior = st.selectbox("Senior Citizen", [0, 1], 0)
 
 review_text = st.text_area("📝 Customer Review (optional)")
-predict_btn = st.button("🔮 Predict Churn" ,color="blue")
+predict_btn = st.button("🔮 Predict Churn" )
 
 # --------------------- Prediction ---------------------
 if predict_btn:
