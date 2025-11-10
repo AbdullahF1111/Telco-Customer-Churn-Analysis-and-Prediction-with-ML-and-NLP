@@ -410,6 +410,6 @@ st.markdown("""
 # st.info("For full visual analysis including charts and graphs, please refer to the project notebook in the repository.")
 
 st.markdown("""
----
+
 *Analysis based on 7,043 customer records using Random Forest classification with 94.6% AUC performance.*
 """)
