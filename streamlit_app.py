@@ -401,6 +401,8 @@ st.markdown("""
 | **Churn Rate** | 26.5% | 16.5-18.5% | **35-45% reduction** |
 | **Implementation ROI** | - | 2.4x (Y1), 4.8x (Y2) | **Strong business case** |
 
+*Analysis based on 7,043 customer records using Random Forest classification with 94.6% AUC performance.*
+
 ---
 
 """)
@@ -411,5 +413,4 @@ Dataset Name: Telco Customer Churn + Realistic Customer Feedback
 
 Source: [*Dataset Source(Beata Faron)*](https://www.kaggle.com/datasets/beatafaron/telco-customer-churn-realistic-customer-feedback)
 
-*Analysis based on 7,043 customer records using Random Forest classification with 94.6% AUC performance.*
 """)
