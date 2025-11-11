@@ -11,12 +11,12 @@ st.title("📞 Telco Customer Churn Prediction App")
 
 
 st.markdown(
-    """
-    ### 🔗 [Full Project on GitHub](https://github.com/AbdullahF1111/Telco-Customer-Churn-Analysis-and-Prediction-with-ML-and-NLP)
-    
+    """    
     A comprehensive machine learning solution for predicting customer churn in the telecom industry.
     
     You can add a customer review for automatic sentiment scoring using NLP.
+
+    #### 🔗 [Full Project on GitHub](https://github.com/AbdullahF1111/Telco-Customer-Churn-Analysis-and-Prediction-with-ML-and-NLP)
     """
 )
 
