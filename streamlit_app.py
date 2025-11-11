@@ -406,7 +406,7 @@ st.markdown("""
 """)
 
 st.caption(" Dataset: Telco Customer Churn + Customer Review Using NLP")
-st.caption("For showing dataset , visit Kaggle [(Dataset)](https://github.com/yourusername/telco-customer-churn-analysis)")
+st.caption("For showing dataset , visit Kaggle [Dataset(Beata Faron)](https://github.com/yourusername/telco-customer-churn-analysis)")
 
 
 st.markdown("---")
