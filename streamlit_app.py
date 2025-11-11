@@ -405,5 +405,11 @@ st.markdown("""
 
 """)
 st.markdown("""
+### Dataset Information
+
+Dataset Name: Telco Customer Churn + Realistic Customer Feedback
+
+Source: [*Dataset Source(Beata Faron)*](https://www.kaggle.com/datasets/beatafaron/telco-customer-churn-realistic-customer-feedback)
+
 *Analysis based on 7,043 customer records using Random Forest classification with 94.6% AUC performance.*
 """)
