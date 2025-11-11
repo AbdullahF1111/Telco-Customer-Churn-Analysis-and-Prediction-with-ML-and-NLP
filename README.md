@@ -28,6 +28,22 @@ The project combines **structured data analysis**, **customer feedback sentiment
 
 ---
 
+### Dataset Information
+
+Dataset Name: Telco Customer Churn + Realistic Customer Feedback
+Source: [*Dataset Source(Beata Faron)*](https://www.kaggle.com/datasets/beatafaron/telco-customer-churn-realistic-customer-feedback)
+License: CC0: Public Domain (free to use for research and educational purposes)
+**Description:**
+This dataset contains demographic and service-related information about telecom customers, including whether they have churned (left the company) or stayed.
+It includes:
+
+**7,043 rows** and **26** columns
+
+Key features: tenure, Contract, InternetService, MonthlyCharges, TotalCharges, and Churn
+
+Added NLP-based features: sentiment and feedback_length (engineered from customer review text)
+
+---
 ### 📂 Project Structure
 ```
 telco-customer-churn-analysis-and-prediction-with-ml-and-nlp/
@@ -163,5 +179,4 @@ This project is licensed under the **MIT License** — you're free to use and ad
 
 ---
 
-[*Dataset Source(Beata Faron)*](https://www.kaggle.com/datasets/beatafaron/telco-customer-churn-realistic-customer-feedback)
 
