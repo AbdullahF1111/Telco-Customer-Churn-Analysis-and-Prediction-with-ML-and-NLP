@@ -359,7 +359,7 @@ allowing integration of textual customer emotions directly into the churn predic
 
 # --- Strategic Recommendations ---
 st.markdown("""
-## 💼 Strategic Recommendations & Expected Impact
+## Strategic Recommendations & Expected Impact
 
 ### 🎯 Priority Retention Initiatives
 """)
