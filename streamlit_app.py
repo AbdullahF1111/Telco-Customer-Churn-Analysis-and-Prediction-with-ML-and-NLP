@@ -222,8 +222,6 @@ if predict_btn:
     for t in tips:
         st.write("- " + t)
 
-st.markdown("---")
-st.caption("Developed by Abdullah Fahlo — Telco Churn ML + NLP Project")
 
 
 # -------------------- EDA Section ---------------------
@@ -406,11 +404,6 @@ st.markdown("""
 ---
 
 """)
-st.markdown("""
-### Dataset Information
 
-Dataset Name: Telco Customer Churn + Realistic Customer Feedback
-
-Source: [*Dataset Source(Beata Faron)*](https://www.kaggle.com/datasets/beatafaron/telco-customer-churn-realistic-customer-feedback)
-
-""")
+st.markdown("---")
+st.caption("Developed by Abdullah Fahlo — Telco Churn ML + NLP Project")
